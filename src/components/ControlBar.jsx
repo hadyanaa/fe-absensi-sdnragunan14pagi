@@ -107,11 +107,11 @@ export default function ControlBar({
       <div className="flex items-center gap-3">
         {unsavedCount > 0 ? (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+            <span className="w-2 h-2 rounded-full bg-amber-500" aria-hidden="true" />
             <span>{unsavedCount} perubahan belum disimpan</span>
           </div>
         ) : (
-          <span className="text-xs font-medium text-slate-400 hidden sm:inline">Semua perubahan tersimpan</span>
+          <span className="text-xs font-medium text-slate-500 hidden sm:inline">Semua perubahan tersimpan</span>
         )}
 
         <button

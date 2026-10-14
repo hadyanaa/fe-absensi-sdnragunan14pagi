@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: https://api.sdnragunan14pagi.sch.id
+        VITE_API_BASE_URL: https://api.sdnragunan14pagi.sch.id/api
     container_name: web-absensi-app
     restart: unless-stopped
     ports:

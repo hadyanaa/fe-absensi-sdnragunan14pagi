@@ -13,7 +13,7 @@ export default defineConfig({
       '/api-proxy': {
         target: 'https://api.sdnragunan14pagi.sch.id',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api-proxy/, ''),
+        rewrite: (path) => path.replace(/^\/api-proxy/, '/api'),
         secure: false,
       },
     },

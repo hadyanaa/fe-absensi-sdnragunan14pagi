@@ -14,7 +14,7 @@ RUN npm ci || npm install
 COPY . .
 
 # Argument untuk URL API Backend (bisa dioverride saat docker build)
-ARG VITE_API_BASE_URL=https://api.sdnragunan14pagi.sch.id
+ARG VITE_API_BASE_URL=https://api.sdnragunan14pagi.sch.id/api
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # Jalankan build production Vite
