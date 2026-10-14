@@ -1,0 +1,21 @@
+name: Deploy Web Absensi SDN 14 Ragunan
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Rebuild & Deploy Docker Container
+    runs-on: self-hosted
+
+    steps:
+      - name: Pull Latest Code and Rebuild Docker Container
+        run: |
+          cd /home/r14/apps/web-absensi || cd $HOME/apps/web-absensi
+          git pull origin main
+          docker compose down
+          docker compose up -d --build
+          docker image prune -f
+
