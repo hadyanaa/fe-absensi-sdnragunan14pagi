@@ -8,5 +8,5 @@ services:
     container_name: web-absensi-app
     restart: unless-stopped
     ports:
-      - "3001:80" # Port luar 3001 diarahkan ke Nginx port 80 di dalam container
+      - "3000:80" # Port luar 3000 diarahkan ke Nginx port 80 di dalam container
 
