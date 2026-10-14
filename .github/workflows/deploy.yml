@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Pull Latest Code and Rebuild Docker Container
         run: |
-          cd /home/r14/apps/web-absensi || cd $HOME/apps/web-absensi
+          cd /home/r14/apps/web-sekolah/fe-absensi-sdnragunan14pagi || cd /home/r14/apps/fe-absensi-sdnragunan14pagi || cd /home/r14/apps/web-absensi
           git pull origin main
           docker compose down
           docker compose up -d --build
