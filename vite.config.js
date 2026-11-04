@@ -16,7 +16,12 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api-proxy/, '/api'),
         secure: false,
       },
+      '/auth-proxy': {
+        target: 'https://api.sdnragunan14pagi.sch.id',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/auth-proxy/, '/auth'),
+        secure: false,
+      },
     },
   },
 })
-

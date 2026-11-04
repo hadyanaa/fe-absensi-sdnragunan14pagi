@@ -20,6 +20,7 @@ export default function AbsensiGrid({
   stagedAbsensi = {},
   onCellChange,
   onSetAllPresentForDay,
+  onOpenSiswaTab,
 }) {
   const daysArray = Array.from({ length: totalHari || 31 }, (_, i) => i + 1);
 
@@ -46,37 +47,37 @@ export default function AbsensiGrid({
     switch (status) {
       case 'H':
         return (
-          <span className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold text-xs flex items-center justify-center shadow-xs transition-transform hover:scale-110">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-300 bg-emerald-100 text-xs font-bold text-emerald-800">
             H
           </span>
         );
       case 'S':
         return (
-          <span className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 border border-amber-300 font-bold text-xs flex items-center justify-center shadow-xs transition-transform hover:scale-110">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-300 bg-amber-100 text-xs font-bold text-amber-800">
             S
           </span>
         );
       case 'I':
         return (
-          <span className="w-7 h-7 rounded-lg bg-sky-100 text-sky-800 border border-sky-300 font-bold text-xs flex items-center justify-center shadow-xs transition-transform hover:scale-110">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-sky-300 bg-sky-100 text-xs font-bold text-sky-800">
             I
           </span>
         );
       case 'A':
         return (
-          <span className="w-7 h-7 rounded-lg bg-rose-100 text-rose-800 border border-rose-300 font-bold text-xs flex items-center justify-center shadow-xs transition-transform hover:scale-110">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-rose-300 bg-rose-100 text-xs font-bold text-rose-800">
             A
           </span>
         );
       case 'L':
         return (
-          <span className="w-7 h-7 rounded-lg bg-slate-200 text-slate-600 border border-slate-300 font-bold text-xs flex items-center justify-center">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-300 bg-slate-200 text-xs font-bold text-slate-700">
             L
           </span>
         );
       default:
         return (
-          <span className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-slate-600 hover:bg-slate-100 font-bold text-sm select-none transition-colors">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg text-sm font-bold text-slate-400 hover:bg-slate-100 hover:text-slate-700 select-none">
             -
           </span>
         );
@@ -95,48 +96,56 @@ export default function AbsensiGrid({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-blue-900/10 shadow-[0_16px_42px_rgba(8,57,115,0.06)] overflow-hidden">
+    <div className="overflow-hidden rounded-xl border border-blue-900/10 bg-white shadow-[0_16px_42px_rgba(8,57,115,0.08)]">
       {/* Legend & Panduan Interaksi */}
-      <div className="px-5 py-3.5 bg-slate-50 border-b border-slate-200/80 flex flex-wrap items-center justify-between text-xs text-slate-600 gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 bg-slate-50 px-5 py-3.5 text-xs text-slate-700">
         <div className="flex flex-wrap items-center gap-4">
-          <span className="font-bold text-slate-800">Petunjuk Pengisian:</span>
-          <div className="flex items-center gap-2">
+          <span className="font-bold text-slate-900">Petunjuk Pengisian:</span>
+          <div className="flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-1">
-              <span className="w-4 h-4 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px] flex items-center justify-center">H</span>
-              <span className="text-[11px] font-medium">Hadir</span>
+              <span className="flex h-4 w-4 items-center justify-center rounded border border-emerald-300 bg-emerald-100 text-[10px] font-bold text-emerald-800">
+                H
+              </span>
+              <span className="text-xs font-medium">Hadir</span>
             </span>
             <span className="inline-flex items-center gap-1">
-              <span className="w-4 h-4 rounded bg-amber-100 text-amber-800 font-bold text-[10px] flex items-center justify-center">S</span>
-              <span className="text-[11px] font-medium">Sakit</span>
+              <span className="flex h-4 w-4 items-center justify-center rounded border border-amber-300 bg-amber-100 text-[10px] font-bold text-amber-800">
+                S
+              </span>
+              <span className="text-xs font-medium">Sakit</span>
             </span>
             <span className="inline-flex items-center gap-1">
-              <span className="w-4 h-4 rounded bg-sky-100 text-sky-800 font-bold text-[10px] flex items-center justify-center">I</span>
-              <span className="text-[11px] font-medium">Izin</span>
+              <span className="flex h-4 w-4 items-center justify-center rounded border border-sky-300 bg-sky-100 text-[10px] font-bold text-sky-800">
+                I
+              </span>
+              <span className="text-xs font-medium">Izin</span>
             </span>
             <span className="inline-flex items-center gap-1">
-              <span className="w-4 h-4 rounded bg-rose-100 text-rose-800 font-bold text-[10px] flex items-center justify-center">A</span>
-              <span className="text-[11px] font-medium">Alpa</span>
+              <span className="flex h-4 w-4 items-center justify-center rounded border border-rose-300 bg-rose-100 text-[10px] font-bold text-rose-800">
+                A
+              </span>
+              <span className="text-xs font-medium">Alpa</span>
             </span>
           </div>
         </div>
 
-        <p className="text-[11px] text-slate-400">
-          Klik cell untuk mengganti status. Klik kanan untuk mengosongkan.
+        <p className="text-xs text-slate-600">
+          Klik sel untuk mengganti status. Klik kanan untuk mengosongkan.
         </p>
       </div>
 
       {/* Tabel Matriks Grid */}
-      <div className="overflow-x-auto relative max-h-[68vh] scrollbar-thin">
+      <div className="relative max-h-[68vh] overflow-x-auto scrollbar-thin">
         <table className="w-full border-collapse text-left text-xs">
-          <thead className="sticky top-0 z-30 bg-slate-100/95 backdrop-blur-xs border-b border-slate-200 shadow-xs">
+          <thead className="sticky top-0 z-30 border-b border-slate-200 bg-slate-100">
             <tr>
               {/* Sticky Kolom No */}
-              <th className="sticky left-0 z-40 bg-slate-100 w-12 px-3 py-3 font-bold text-slate-700 text-center border-r border-slate-200 select-none">
+              <th className="sticky left-0 z-40 w-12 border-r border-slate-200 bg-slate-100 px-3 py-3 text-center font-bold text-slate-800 select-none">
                 No
               </th>
 
               {/* Sticky Kolom Nama Siswa */}
-              <th className="sticky left-12 z-40 bg-slate-100 min-w-[200px] sm:min-w-[240px] px-4 py-3 font-bold text-slate-700 border-r border-slate-200 select-none">
+              <th className="sticky left-12 z-40 min-w-[190px] border-r border-slate-200 bg-slate-100 px-4 py-3 font-bold text-slate-800 sm:min-w-[240px] select-none">
                 Nama Murid
               </th>
 
@@ -146,18 +155,18 @@ export default function AbsensiGrid({
                 return (
                   <th
                     key={day}
-                    className={`min-w-[44px] px-1 py-2 text-center border-r border-slate-200 select-none ${
-                      isWeekend ? 'bg-slate-200/70 text-slate-500' : 'bg-slate-100 text-slate-800'
+                    className={`min-w-[44px] border-r border-slate-200 px-1 py-2 text-center select-none ${
+                      isWeekend ? 'bg-slate-200/80 text-slate-600' : 'bg-slate-100 text-slate-800'
                     }`}
                   >
-                    <div className="font-mono font-bold text-xs leading-none">{day}</div>
-                    <div className="text-[10px] text-slate-500 font-normal mt-0.5">{name}</div>
+                    <div className="font-mono text-xs font-bold leading-none">{day}</div>
+                    <div className="mt-0.5 text-[10px] font-medium text-slate-600">{name}</div>
                     {!isWeekend && (
                       <button
                         type="button"
                         onClick={() => onSetAllPresentForDay(day)}
                         title={`Tandai semua murid hadir pada tgl ${day}`}
-                        className="mt-1 text-[9px] font-bold text-[#0a4ea0] hover:bg-blue-100 hover:text-blue-900 rounded px-1 py-0.5 cursor-pointer block mx-auto transition-colors"
+                        className="mx-auto mt-1 block rounded px-1 py-0.5 text-[10px] font-bold text-[#0a4ea0] transition-colors hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-[#098fd1] cursor-pointer"
                       >
                         ✓All
                       </button>
@@ -167,7 +176,7 @@ export default function AbsensiGrid({
               })}
 
               {/* Sticky Kolom Rekap */}
-              <th className="sticky right-0 z-40 bg-slate-200 px-3 py-3 font-bold text-slate-800 text-center border-l border-slate-300 min-w-[140px] select-none">
+              <th className="sticky right-0 z-40 min-w-[140px] border-l border-slate-300 bg-slate-200 px-3 py-3 text-center font-bold text-slate-800 select-none">
                 Rekap (H / S / I / A)
               </th>
             </tr>
@@ -176,12 +185,23 @@ export default function AbsensiGrid({
           <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
             {dataMurid.length === 0 ? (
               <tr>
-                <td colSpan={daysArray.length + 3} className="text-center py-14 text-slate-400">
-                  <div className="flex flex-col items-center justify-center gap-2">
-                    <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    <span>Tidak ada data siswa untuk kelas ini.</span>
+                <td colSpan={daysArray.length + 3} className="py-14 text-center text-slate-600">
+                  <div className="mx-auto flex max-w-md flex-col items-center justify-center gap-2 px-4">
+                    <p className="text-sm font-bold text-slate-800">
+                      Belum ada siswa terdaftar di kelas ini
+                    </p>
+                    <p className="text-xs text-slate-600">
+                      Tambahkan atau impor daftar nama siswa terlebih dahulu melalui tab Kelola Data Siswa.
+                    </p>
+                    {onOpenSiswaTab && (
+                      <button
+                        type="button"
+                        onClick={onOpenSiswaTab}
+                        className="mt-2 inline-flex min-h-11 items-center rounded-lg bg-[#0a4ea0] px-4 py-2 text-xs font-bold text-white hover:bg-[#098fd1] focus-visible:outline-2 focus-visible:outline-[#098fd1] cursor-pointer"
+                      >
+                        Buka Kelola Data Siswa
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -189,14 +209,14 @@ export default function AbsensiGrid({
               dataMurid.map((murid, idx) => {
                 const rekap = computeStudentRekap(murid);
                 return (
-                  <tr key={murid.murid_id} className="hover:bg-blue-50/40 transition-colors">
+                  <tr key={murid.murid_id} className="transition-colors hover:bg-blue-50/40">
                     {/* Sticky No Urut */}
-                    <td className="sticky left-0 z-20 bg-white hover:bg-blue-50/40 px-3 py-2 text-center border-r border-slate-200 font-mono text-xs select-none">
+                    <td className="sticky left-0 z-20 border-r border-slate-200 bg-white px-3 py-2 text-center font-mono text-xs text-slate-700 select-none">
                       {murid.no_urut || idx + 1}
                     </td>
 
                     {/* Sticky Nama Murid */}
-                    <td className="sticky left-12 z-20 bg-white hover:bg-blue-50/40 px-4 py-2 border-r border-slate-200 font-semibold text-slate-800 truncate max-w-[240px]">
+                    <td className="sticky left-12 z-20 max-w-[240px] truncate border-r border-slate-200 bg-white px-4 py-2 font-semibold text-slate-900">
                       {murid.nama_murid}
                     </td>
 
@@ -208,30 +228,42 @@ export default function AbsensiGrid({
                       return (
                         <td
                           key={day}
-                          onClick={() => handleCellClick(murid.murid_id, day, currentStatus)}
-                          onContextMenu={(e) => handleContextMenu(e, murid.murid_id, day)}
-                          className={`p-1 text-center border-r border-slate-100 cursor-pointer select-none transition-colors ${
-                            isWeekend ? 'bg-slate-50/70 hover:bg-slate-100' : 'hover:bg-blue-100/50'
+                          className={`border-r border-slate-100 p-0.5 text-center ${
+                            isWeekend ? 'bg-slate-50/80' : ''
                           }`}
-                          title={`Tgl ${day}: ${murid.nama_murid} (${currentStatus || 'Belum diisi'})`}
                         >
-                          <div className="flex items-center justify-center">
+                          <button
+                            type="button"
+                            onClick={() => handleCellClick(murid.murid_id, day, currentStatus)}
+                            onContextMenu={(e) => handleContextMenu(e, murid.murid_id, day)}
+                            title={`Tgl ${day}: ${murid.nama_murid} (${currentStatus || 'Belum diisi'})`}
+                            aria-label={`Tanggal ${day}, ${murid.nama_murid}, status ${currentStatus || 'belum diisi'}`}
+                            className="flex h-9 w-full items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:outline-[#098fd1] cursor-pointer"
+                          >
                             {renderBadge(currentStatus)}
-                          </div>
+                          </button>
                         </td>
                       );
                     })}
 
                     {/* Sticky Rekap Murid */}
-                    <td className="sticky right-0 z-20 bg-slate-50 px-3 py-2 border-l border-slate-200 text-center font-bold">
-                      <div className="flex items-center justify-center gap-1.5 text-[11px]">
-                        <span className="text-emerald-700 font-bold" title="Hadir">{rekap.H}H</span>
-                        <span className="text-slate-300">/</span>
-                        <span className="text-amber-700 font-bold" title="Sakit">{rekap.S}S</span>
-                        <span className="text-slate-300">/</span>
-                        <span className="text-sky-700 font-bold" title="Izin">{rekap.I}I</span>
-                        <span className="text-slate-300">/</span>
-                        <span className="text-rose-700 font-bold" title="Alpa">{rekap.A}A</span>
+                    <td className="sticky right-0 z-20 border-l border-slate-200 bg-slate-50 px-3 py-2 text-center font-bold">
+                      <div className="flex items-center justify-center gap-1.5 text-[11px] tabular-nums">
+                        <span className="font-bold text-emerald-800" title="Hadir">
+                          {rekap.H}H
+                        </span>
+                        <span className="text-slate-400">/</span>
+                        <span className="font-bold text-amber-800" title="Sakit">
+                          {rekap.S}S
+                        </span>
+                        <span className="text-slate-400">/</span>
+                        <span className="font-bold text-sky-800" title="Izin">
+                          {rekap.I}I
+                        </span>
+                        <span className="text-slate-400">/</span>
+                        <span className="font-bold text-rose-800" title="Alpa">
+                          {rekap.A}A
+                        </span>
                       </div>
                     </td>
                   </tr>
@@ -244,4 +276,3 @@ export default function AbsensiGrid({
     </div>
   );
 }
-

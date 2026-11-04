@@ -41,27 +41,30 @@ export default function KpiCards({ totalHadir = 0, totalSakit = 0, totalIzin = 0
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-      {cards.map((card, idx) => (
+    <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
+      {cards.map((card) => (
         <div
-          key={idx}
-          className={`${card.bg} border ${card.border} rounded-2xl p-4 shadow-[0_4px_16px_rgba(8,57,115,0.03)] flex flex-col justify-between`}
+          key={card.label}
+          className={`${card.bg} border ${card.border} flex flex-col justify-between rounded-xl p-4`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${card.dot}`} />
-              <p className="text-xs font-bold text-slate-700">{card.label}</p>
+              <span className={`h-2 w-2 rounded-full ${card.dot}`} aria-hidden="true" />
+              <p className="text-xs font-bold text-slate-800">{card.label}</p>
             </div>
-            <span className="text-[10px] font-semibold text-slate-400 hidden sm:inline">{card.desc}</span>
+            <span className="hidden text-[11px] font-semibold text-slate-600 sm:inline">
+              {card.desc}
+            </span>
           </div>
 
           <div className="mt-3 flex items-baseline justify-between">
-            <p className={`text-2xl sm:text-3xl font-black ${card.text}`}>{card.value}</p>
-            <span className="text-[11px] font-medium text-slate-500">Presensi</span>
+            <p className={`text-2xl font-black tabular-nums sm:text-3xl ${card.text}`}>
+              {card.value}
+            </p>
+            <span className="text-xs font-medium text-slate-600">Presensi</span>
           </div>
         </div>
       ))}
     </div>
   );
 }
-

@@ -23,24 +23,39 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9fafa] flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Ambience halus tanpa generic slop */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0a4ea0]/5 via-transparent to-[#098fd1]/10 pointer-events-none" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#f9fafa] p-4">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#0a4ea0]/5 via-transparent to-[#098fd1]/10" />
 
-      <div className="relative w-full max-w-md bg-white rounded-2xl border border-blue-900/10 shadow-[0_16px_42px_rgba(8,57,115,0.08)] p-8 sm:p-10">
+      <div className="relative w-full max-w-md rounded-xl border border-blue-900/10 bg-white p-6 shadow-[0_16px_42px_rgba(8,57,115,0.08)] sm:p-10">
         {/* Identitas Sekolah SDN 14 Ragunan */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#0a4ea0] to-[#098fd1] text-white font-black text-2xl shadow-lg shadow-blue-900/20 mb-4 select-none">
+        <div className="mb-8 text-center">
+          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#0a4ea0] to-[#098fd1] text-2xl font-black text-white shadow-md select-none">
             14
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">SDN 14 RAGUNAN</h1>
-          <p className="text-sm text-slate-500 font-medium mt-1">Sistem Presensi & Absensi Siswa</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">SDN 14 RAGUNAN</h1>
+          <p className="mt-1 text-sm font-medium text-slate-600">
+            Sistem Presensi & Data Siswa
+          </p>
         </div>
 
         {errorMsg && (
-          <div className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-start gap-2.5">
-            <svg className="w-4 h-4 shrink-0 text-rose-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div
+            role="alert"
+            className="mb-6 flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-xs font-semibold text-rose-800"
+          >
+            <svg
+              className="mt-0.5 h-4 w-4 shrink-0 text-rose-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <span className="leading-relaxed">{errorMsg}</span>
           </div>
@@ -48,7 +63,10 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="input-nip" className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+            <label
+              htmlFor="input-nip"
+              className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700"
+            >
               Nomor Induk Pegawai (NIP)
             </label>
             <input
@@ -56,15 +74,18 @@ export default function LoginPage() {
               type="text"
               value={nip}
               onChange={(e) => setNip(e.target.value)}
-              placeholder="Masukkan NIP Anda"
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#098fd1] focus:ring-4 focus:ring-[#098fd1]/10 transition-all font-medium"
+              placeholder="Contoh: 198501012010011001"
+              className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-3 text-base font-medium text-slate-900 placeholder-slate-400 transition-colors focus:border-[#098fd1] focus:outline-none focus:ring-4 focus:ring-[#098fd1]/15 sm:text-sm"
               required
               autoFocus
             />
           </div>
 
           <div>
-            <label htmlFor="input-password" className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+            <label
+              htmlFor="input-password"
+              className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700"
+            >
               Kata Sandi
             </label>
             <input
@@ -72,8 +93,8 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#098fd1] focus:ring-4 focus:ring-[#098fd1]/10 transition-all font-medium"
+              placeholder="Masukkan kata sandi"
+              className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-3 text-base font-medium text-slate-900 placeholder-slate-400 transition-colors focus:border-[#098fd1] focus:outline-none focus:ring-4 focus:ring-[#098fd1]/15 sm:text-sm"
               required
             />
           </div>
@@ -81,13 +102,13 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3.5 px-4 rounded-xl bg-[#0a4ea0] hover:bg-[#083e80] text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+            className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0a4ea0] px-4 py-3.5 text-sm font-bold text-white shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#098fd1] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#098fd1] cursor-pointer"
           >
             {loading ? (
               <>
-                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                <svg className="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
                 <span>Memverifikasi...</span>
               </>
@@ -97,8 +118,8 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-          <p className="text-xs text-slate-400 font-normal">
+        <div className="mt-8 border-t border-slate-100 pt-6 text-center">
+          <p className="text-xs font-normal text-slate-600">
             Kecamatan Pasar Minggu, Kota Administrasi Jakarta Selatan
           </p>
         </div>
@@ -106,4 +127,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

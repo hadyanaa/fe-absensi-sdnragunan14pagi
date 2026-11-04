@@ -1,33 +1,42 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { getAbsensi, saveAbsensiBatch, getErrorMessage } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import ControlBar from './ControlBar';
 import KpiCards from './KpiCards';
 import AbsensiGrid from './AbsensiGrid';
 
-const CONFIRM_DISCARD = 'Ada perubahan presensi yang belum disimpan. Lanjutkan dan buang perubahan tersebut?';
+const CONFIRM_DISCARD =
+  'Ada perubahan presensi yang belum disimpan. Lanjutkan dan buang perubahan tersebut?';
 
-export default function PresensiTab({ guru, kelasList, selectedKelasId, onSelectKelas, rosterVersion, onUnsavedChange }) {
+export default function PresensiTab({
+  guru,
+  kelasList,
+  selectedKelasId,
+  onSelectKelas,
+  rosterVersion,
+  onUnsavedChange,
+  onOpenSiswaTab,
+}) {
   const notify = useToast();
 
-  const today = new Date();
-  const [bulan, setBulan] = useState(today.getMonth() + 1);
-  const [tahun, setTahun] = useState(today.getFullYear());
+  const [bulan, setBulan] = useState(() => new Date().getMonth() + 1);
+  const [tahun, setTahun] = useState(() => new Date().getFullYear());
 
   const [dataAbsensi, setDataAbsensi] = useState({ total_hari: 31, data: [] });
   const [loading, setLoading] = useState(false);
   const [errorState, setErrorState] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [reloadTick, setReloadTick] = useState(0);
 
   // Buffer perubahan belum disimpan: { "muridId_hari": "H"|"S"|"I"|"A"|null }
   const [stagedChanges, setStagedChanges] = useState({});
   const unsavedCount = Object.keys(stagedChanges).length;
+  const prevRosterRef = useRef(rosterVersion);
 
   useEffect(() => {
     onUnsavedChange?.(unsavedCount);
   }, [unsavedCount, onUnsavedChange]);
 
-  // Peringatan browser bila guru menutup tab dengan perubahan yang belum disimpan
   useEffect(() => {
     if (unsavedCount === 0) return undefined;
     const handler = (e) => {
@@ -38,20 +47,26 @@ export default function PresensiTab({ guru, kelasList, selectedKelasId, onSelect
     return () => window.removeEventListener('beforeunload', handler);
   }, [unsavedCount]);
 
-  const fetchAbsensi = useCallback(
-    async ({ keepStaged = false } = {}) => {
-      if (!selectedKelasId) return;
+  useEffect(() => {
+    if (!selectedKelasId) return undefined;
+    let active = true;
+    const isRosterRefresh = prevRosterRef.current !== rosterVersion;
+    prevRosterRef.current = rosterVersion;
+
+    const load = async () => {
       setLoading(true);
       setErrorState(null);
       try {
         const res = await getAbsensi({ bulan, tahun, kelas_id: selectedKelasId });
+        if (!active) return;
         if (res.data?.success) {
           setDataAbsensi(res.data);
-          if (keepStaged) {
-            // Data siswa berubah dari tab lain: pertahankan isian guru untuk siswa yang masih ada
+          if (isRosterRefresh) {
             const ids = new Set((res.data.data || []).map((m) => String(m.murid_id)));
             setStagedChanges((prev) =>
-              Object.fromEntries(Object.entries(prev).filter(([key]) => ids.has(key.split('_')[0])))
+              Object.fromEntries(
+                Object.entries(prev).filter(([key]) => ids.has(key.split('_')[0]))
+              )
             );
           } else {
             setStagedChanges({});
@@ -60,28 +75,18 @@ export default function PresensiTab({ guru, kelasList, selectedKelasId, onSelect
           setErrorState(res.data?.message || 'Lembar presensi tidak dapat dimuat.');
         }
       } catch (err) {
+        if (!active) return;
         setErrorState(getErrorMessage(err, 'Lembar presensi tidak dapat dimuat.'));
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
-    },
-    [selectedKelasId, bulan, tahun]
-  );
+    };
 
-  useEffect(() => {
-    fetchAbsensi();
-  }, [fetchAbsensi]);
-
-  // Muat ulang tanpa membuang isian saat daftar siswa ditambah/diubah/dihapus di tab Data Siswa
-  const firstRoster = useRef(true);
-  useEffect(() => {
-    if (firstRoster.current) {
-      firstRoster.current = false;
-      return;
-    }
-    fetchAbsensi({ keepStaged: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rosterVersion]);
+    load();
+    return () => {
+      active = false;
+    };
+  }, [selectedKelasId, bulan, tahun, rosterVersion, reloadTick]);
 
   const confirmDiscard = () => unsavedCount === 0 || window.confirm(CONFIRM_DISCARD);
 
@@ -113,7 +118,8 @@ export default function PresensiTab({ guru, kelasList, selectedKelasId, onSelect
     (dataAbsensi.data || []).forEach((murid) => {
       days.forEach((day) => {
         const key = `${murid.murid_id}_${day}`;
-        const st = stagedChanges[key] !== undefined ? stagedChanges[key] : murid.absensi?.[String(day)];
+        const st =
+          stagedChanges[key] !== undefined ? stagedChanges[key] : murid.absensi?.[String(day)];
         if (t[st] !== undefined) t[st]++;
       });
     });
@@ -135,7 +141,7 @@ export default function PresensiTab({ guru, kelasList, selectedKelasId, onSelect
     try {
       const res = await saveAbsensiBatch(rows);
       if (res.data?.success) {
-        notify('success', `${res.data.count || rows.length} isian presensi tersimpan.`);
+        notify('success', `${res.data.count || rows.length} data presensi berhasil disimpan.`);
         setDataAbsensi((prev) => ({
           ...prev,
           data: (prev.data || []).map((m) => {
@@ -152,7 +158,10 @@ export default function PresensiTab({ guru, kelasList, selectedKelasId, onSelect
         notify('error', res.data?.message || 'Presensi gagal disimpan.');
       }
     } catch (err) {
-      notify('error', getErrorMessage(err, 'Presensi gagal disimpan. Isian Anda masih ada, coba simpan lagi.'));
+      notify(
+        'error',
+        getErrorMessage(err, 'Presensi gagal disimpan. Isian Anda masih tersimpan di layar, coba lagi.')
+      );
     } finally {
       setSaving(false);
     }
@@ -173,25 +182,35 @@ export default function PresensiTab({ guru, kelasList, selectedKelasId, onSelect
         saving={saving}
       />
 
-      <KpiCards totalHadir={totals.H} totalSakit={totals.S} totalIzin={totals.I} totalAlpa={totals.A} />
+      <KpiCards
+        totalHadir={totals.H}
+        totalSakit={totals.S}
+        totalIzin={totals.I}
+        totalAlpa={totals.A}
+      />
 
       {loading && (
-        <div className="rounded-xl border border-blue-900/10 bg-white p-12 text-center">
+        <div className="rounded-xl border border-blue-900/10 bg-white p-12 text-center shadow-[0_16px_42px_rgba(8,57,115,0.08)]">
           <div className="mb-3 inline-block h-8 w-8 animate-spin rounded-full border-4 border-[#0a4ea0] border-t-transparent" />
           <p className="text-sm font-semibold text-slate-600">Memuat lembar presensi siswa...</p>
         </div>
       )}
 
       {!loading && errorState && (
-        <div role="alert" className="rounded-xl border border-rose-200 bg-white p-8 text-center">
-          <h3 className="text-base font-bold text-slate-800">Lembar presensi belum bisa ditampilkan</h3>
+        <div
+          role="alert"
+          className="rounded-xl border border-rose-200 bg-white p-8 text-center shadow-[0_16px_42px_rgba(8,57,115,0.08)]"
+        >
+          <h3 className="text-base font-bold text-slate-800">
+            Lembar presensi belum bisa ditampilkan
+          </h3>
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-600">{errorState}</p>
           <button
             type="button"
-            onClick={() => fetchAbsensi()}
+            onClick={() => setReloadTick((t) => t + 1)}
             className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-[#0a4ea0] px-4 text-sm font-bold text-white hover:bg-[#098fd1] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#098fd1] cursor-pointer"
           >
-            Muat ulang lembar presensi
+            Muat Ulang Lembar Presensi
           </button>
         </div>
       )}
@@ -205,9 +224,9 @@ export default function PresensiTab({ guru, kelasList, selectedKelasId, onSelect
           stagedAbsensi={stagedChanges}
           onCellChange={handleCellChange}
           onSetAllPresentForDay={handleSetAllPresent}
+          onOpenSiswaTab={onOpenSiswaTab}
         />
       )}
     </div>
   );
 }
-

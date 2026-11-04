@@ -5,16 +5,27 @@ const FOCUSABLE =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
- * Dialog yang bisa dipakai penuh dengan keyboard:
+ * Dialog aksesibel yang bisa dioperasikan penuh dengan keyboard:
  * Escape menutup, Tab berputar di dalam dialog, fokus kembali ke tombol pemicu saat ditutup.
- * Di layar HP tampil sebagai panel dari bawah agar tombol aksi dekat jempol.
+ * Di layar HP tampil sebagai bottom sheet agar tombol aksi mudah dijangkau jempol.
  */
-export default function Modal({ open, onClose, title, description, children, footer, busy = false, initialFocusRef, size = 'md' }) {
+export default function Modal({
+  open,
+  onClose,
+  title,
+  description,
+  children,
+  footer,
+  busy = false,
+  initialFocusRef,
+  size = 'md',
+}) {
   const panelRef = useRef(null);
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-  const busyRef = useRef(busy);
-  busyRef.current = busy;
+  const stateRef = useRef({ onClose, busy });
+
+  useEffect(() => {
+    stateRef.current = { onClose, busy };
+  }, [onClose, busy]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -23,16 +34,15 @@ export default function Modal({ open, onClose, title, description, children, foo
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    // Fokus awal: field yang diminta, atau elemen fokus pertama di dalam panel
     const focusTimer = setTimeout(() => {
       const target = initialFocusRef?.current || panelRef.current?.querySelector(FOCUSABLE);
       target?.focus();
     }, 0);
 
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && !busyRef.current) {
+      if (e.key === 'Escape' && !stateRef.current.busy) {
         e.stopPropagation();
-        onCloseRef.current();
+        stateRef.current.onClose?.();
         return;
       }
       if (e.key !== 'Tab' || !panelRef.current) return;
@@ -96,7 +106,7 @@ export default function Modal({ open, onClose, title, description, children, foo
             onClick={onClose}
             disabled={busy}
             aria-label="Tutup dialog"
-            className="-mt-1 -mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-[#098fd1]"
+            className="-mt-1 -mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-[#098fd1] cursor-pointer"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -117,15 +127,14 @@ export default function Modal({ open, onClose, title, description, children, foo
   );
 }
 
-// Gaya tombol yang dipakai berulang di footer dialog
 export const btnSecondary =
   'inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#098fd1] cursor-pointer';
 
 export const btnPrimary =
-  'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#0a4ea0] px-4 text-sm font-bold text-white hover:bg-[#098fd1] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#098fd1] cursor-pointer';
+  'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#0a4ea0] px-4 py-2 text-sm font-bold text-white hover:bg-[#098fd1] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#098fd1] cursor-pointer';
 
 export const btnDanger =
-  'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 cursor-pointer';
+  'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 cursor-pointer';
 
 export const inputBase =
   'w-full rounded-lg border border-slate-300 px-3.5 py-2.5 text-base text-slate-900 placeholder-slate-400 focus:border-[#098fd1] focus:outline-none focus:ring-4 focus:ring-[#098fd1]/15 sm:text-sm';
@@ -138,4 +147,3 @@ export function Spinner({ className = 'h-4 w-4' }) {
     </svg>
   );
 }
-

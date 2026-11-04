@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Semua route guru di backend berada di bawah prefix /api (lihat server.js: app.use('/api/...')).
+// Semua route modul absensi, murid, guru, dan kelas berada di bawah prefix /api.
 // Mode development memakai proxy Vite (/api-proxy -> https://api.sdnragunan14pagi.sch.id/api)
 // supaya browser tidak terkena CORS. Mode production memakai URL dari build arg / .env.
 const baseURL = import.meta.env.DEV
@@ -14,10 +14,15 @@ const api = axios.create({
   },
 });
 
+export const getStoredToken = () =>
+  localStorage.getItem('absensi_token') ||
+  localStorage.getItem('token_guru') ||
+  localStorage.getItem('token');
+
 // Interceptor untuk menyematkan Bearer token JWT
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('absensi_token');
+    const token = getStoredToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,16 +32,17 @@ api.interceptors.request.use(
 );
 
 // Interceptor untuk tangani token kedaluwarsa atau tidak sah (401).
-// Request login dikecualikan: 401 di sana berarti NIP/password salah, bukan sesi habis,
-// dan pesan errornya harus tetap tampil di form login.
+// Request login dikecualikan agar pesan NIP/password salah tetap tampil di form login.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const isLoginRequest = error.config?.url?.includes('/auth/login');
-    const hadSession = Boolean(localStorage.getItem('absensi_token'));
+    const hadSession = Boolean(getStoredToken());
 
     if (error.response?.status === 401 && !isLoginRequest && hadSession) {
       localStorage.removeItem('absensi_token');
+      localStorage.removeItem('token_guru');
+      localStorage.removeItem('token');
       localStorage.removeItem('absensi_guru');
       window.location.reload();
     }
@@ -44,22 +50,41 @@ api.interceptors.response.use(
   }
 );
 
-// Ambil pesan error yang bisa dibaca guru dari respons backend
+// Ambil pesan error yang jelas dari respons backend
 export const getErrorMessage = (err, fallback = 'Terjadi kesalahan. Coba lagi.') =>
-  err?.response?.data?.message || (err?.request && !err?.response ? 'Tidak dapat terhubung ke server. Periksa koneksi internet.' : fallback);
+  err?.response?.data?.message ||
+  (err?.request && !err?.response
+    ? 'Tidak dapat terhubung ke server. Periksa koneksi internet.'
+    : fallback);
 
 // Service Absensi
 export const getAbsensi = (params) => api.get('/absensi', { params });
 export const saveAbsensiBatch = (rows) => api.post('/absensi', rows);
 
-// Service Siswa
-export const getMurid = (kelasId, q) => api.get('/murid', { params: { kelas_id: kelasId, q } });
+// Service Siswa (/api/murid)
+export const getMurid = (kelasId, q) =>
+  api.get('/murid', {
+    params: {
+      ...(kelasId ? { kelas_id: kelasId } : {}),
+      ...(q ? { q } : {}),
+    },
+  });
 export const createMurid = (data) => api.post('/murid', data);
 export const createMuridBulk = (data) => api.post('/murid/bulk', data);
 export const updateMurid = (id, data) => api.put(`/murid/${id}`, data);
 export const deleteMurid = (id) => api.delete(`/murid/${id}`);
 
-// Service Kelas
+// Service Kelas (/api/kelas)
 export const getKelas = () => api.get('/kelas');
+export const createKelas = (data) => api.post('/kelas', data);
+export const updateKelas = (id, data) => api.put(`/kelas/${id}`, data);
+export const deleteKelas = (id, force = false) =>
+  api.delete(`/kelas/${id}`, { params: force ? { force: 'true' } : undefined });
+
+// Service Guru (/api/guru)
+export const getGuru = () => api.get('/guru');
+export const createGuru = (data) => api.post('/guru', data);
+export const updateGuru = (id, data) => api.put(`/guru/${id}`, data);
+export const deleteGuru = (id) => api.delete(`/guru/${id}`);
 
 export default api;
