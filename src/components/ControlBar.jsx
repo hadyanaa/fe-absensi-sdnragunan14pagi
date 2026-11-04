@@ -16,6 +16,8 @@ export default function ControlBar({
   unsavedCount,
   onSave,
   saving,
+  onExportExcel,
+  canExport,
 }) {
   const handlePrevMonth = () => {
     if (bulan === 1) {
@@ -113,18 +115,36 @@ export default function ControlBar({
         </div>
       </div>
 
-      {/* Unsaved Changes & Tombol Simpan */}
-      <div className="flex flex-wrap items-center gap-3">
+      {/* Unsaved Changes, Ekspor Excel & Tombol Simpan */}
+      <div className="flex flex-wrap items-center gap-2.5">
         {unsavedCount > 0 ? (
           <div className="flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900">
             <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" />
             <span>{unsavedCount} perubahan belum disimpan</span>
           </div>
         ) : (
-          <span className="hidden text-xs font-medium text-slate-600 sm:inline">
+          <span className="hidden text-xs font-medium text-slate-600 lg:inline">
             Semua perubahan tersimpan
           </span>
         )}
+
+        <button
+          type="button"
+          onClick={onExportExcel}
+          disabled={!canExport}
+          className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-emerald-700/25 bg-emerald-50 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-emerald-900 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 cursor-pointer"
+          title="Unduh rekap presensi bulan ini dalam format Microsoft Excel (.xlsx)"
+        >
+          <svg className="h-4 w-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
+          </svg>
+          <span>Ekspor Excel (.xlsx)</span>
+        </button>
 
         <button
           type="button"

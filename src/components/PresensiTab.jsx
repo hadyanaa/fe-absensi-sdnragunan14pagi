@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { getAbsensi, saveAbsensiBatch, getErrorMessage } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { exportAbsensiToExcel } from '../utils/exportExcel';
 import ControlBar from './ControlBar';
 import KpiCards from './KpiCards';
 import AbsensiGrid from './AbsensiGrid';
@@ -167,6 +168,39 @@ export default function PresensiTab({
     }
   };
 
+  const handleExportExcel = () => {
+    const muridList = dataAbsensi.data || [];
+    if (muridList.length === 0) {
+      notify('error', 'Belum ada data siswa pada kelas ini untuk diekspor.');
+      return;
+    }
+
+    const activeKelas = kelasList.find((k) => k.id === selectedKelasId);
+    const namaKelas = activeKelas?.nama_kelas || guru?.nama_kelas || String(selectedKelasId || '');
+    const rawWali = activeKelas?.wali_kelas;
+    const waliKelas =
+      (typeof rawWali === 'object' && rawWali !== null
+        ? rawWali.nama_guru || rawWali.namaGuru
+        : rawWali) ||
+      activeKelas?.nama_wali_kelas ||
+      (guru?.role === 'WALI_KELAS' ? guru?.nama_guru : '-');
+
+    try {
+      const filename = exportAbsensiToExcel({
+        namaKelas,
+        waliKelas,
+        bulan,
+        tahun,
+        totalHari: dataAbsensi.total_hari || 31,
+        dataMurid: muridList,
+        stagedChanges,
+      });
+      notify('success', `File Excel berhasil diunduh: ${filename}`);
+    } catch (err) {
+      notify('error', getErrorMessage(err, 'Gagal mengekspor lembar presensi ke Excel.'));
+    }
+  };
+
   return (
     <div className="space-y-5">
       <ControlBar
@@ -180,6 +214,8 @@ export default function PresensiTab({
         unsavedCount={unsavedCount}
         onSave={handleSave}
         saving={saving}
+        onExportExcel={handleExportExcel}
+        canExport={!loading && (dataAbsensi.data || []).length > 0}
       />
 
       <KpiCards
