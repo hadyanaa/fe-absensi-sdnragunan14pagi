@@ -26,6 +26,7 @@ export default function SiswaFormModal({
   siswa,
   kelasId,
   namaKelas,
+  kelasList = [],
   daftarSiswa,
   nextNoUrut,
   isAdmin = false,
@@ -37,6 +38,23 @@ export default function SiswaFormModal({
 
   const [nama, setNama] = useState(() => (isEdit ? siswa?.nama_murid || '' : ''));
   const [noUrut, setNoUrut] = useState(() => (isEdit ? String(siswa?.no_urut ?? '') : ''));
+  const [targetKelasId, setTargetKelasId] = useState(() =>
+    String(isEdit ? siswa?.kelas_id || kelasId || '' : kelasId || '')
+  );
+
+  // Biodata opsional (boleh diedit Admin & Wali Kelas masing-masing)
+  const [nipd, setNipd] = useState(() => (isEdit ? siswa?.nipd || '' : ''));
+  const [nisn, setNisn] = useState(() => (isEdit ? siswa?.nisn || '' : ''));
+  const [nik, setNik] = useState(() => (isEdit ? siswa?.nik || '' : ''));
+  const [tempatLahir, setTempatLahir] = useState(() =>
+    isEdit ? siswa?.tempat_lahir || '' : ''
+  );
+  const [tanggalLahir, setTanggalLahir] = useState(() =>
+    isEdit ? siswa?.tanggal_lahir || '' : ''
+  );
+  const [noHp, setNoHp] = useState(() => (isEdit ? siswa?.no_hp || '' : ''));
+  const [alamat, setAlamat] = useState(() => (isEdit ? siswa?.alamat || '' : ''));
+
   const [status, setStatus] = useState(() => (isEdit ? siswa?.status || 'AKTIF' : 'AKTIF'));
   const [tahunKeluar, setTahunKeluar] = useState(() =>
     isEdit ? siswa?.tahun_keluar || '' : ''
@@ -45,6 +63,7 @@ export default function SiswaFormModal({
   const [serverError, setServerError] = useState('');
   const [busy, setBusy] = useState(false);
 
+  const activeKelasNum = Number(targetKelasId) || kelasId;
   const noUrutNum = Number(noUrut);
   const bentrok =
     noUrut !== '' &&
@@ -53,7 +72,7 @@ export default function SiswaFormModal({
       (m) =>
         m.no_urut === noUrutNum &&
         m.id !== siswa?.id &&
-        m.kelas_id === kelasId &&
+        m.kelas_id === activeKelasNum &&
         (m.status || 'AKTIF') === 'AKTIF'
     );
 
@@ -80,9 +99,19 @@ export default function SiswaFormModal({
 
     setBusy(true);
     try {
-      const payload = { nama_murid: nama.trim() };
+      const payload = {
+        nama_murid: nama.trim(),
+        nipd: nipd.trim() || null,
+        nisn: nisn.trim() || null,
+        nik: nik.trim() || null,
+        tempat_lahir: tempatLahir.trim() || null,
+        tanggal_lahir: tanggalLahir || null,
+        no_hp: noHp.trim() || null,
+        alamat: alamat.trim() || null,
+      };
       if (noUrut !== '') payload.no_urut = noUrutNum;
       if (isEdit && isAdmin) {
+        if (targetKelasId) payload.kelas_id = Number(targetKelasId);
         payload.status = status;
         payload.tahun_keluar = status === 'AKTIF' ? null : tahunKeluar.trim() || null;
       }
@@ -112,10 +141,14 @@ export default function SiswaFormModal({
       open={open}
       onClose={onClose}
       busy={busy}
-      size="sm"
+      size="md"
       initialFocusRef={namaRef}
-      title={isEdit ? 'Edit Data Siswa' : `Tambah 1 Siswa ke Kelas ${namaKelas}`}
-      description={isEdit ? `Kelas ${namaKelas}` : 'Isi nama lengkap murid sesuai daftar kelas.'}
+      title={isEdit ? 'Edit Data & Biodata Siswa' : `Tambah 1 Siswa ke Kelas ${namaKelas}`}
+      description={
+        isEdit
+          ? `Kelas ${namaKelas} - Lengkapi biodata bila tersedia (semua kolom biodata opsional).`
+          : 'Isi nama lengkap murid beserta biodata opsional bila tersedia.'
+      }
       footer={
         <>
           <button type="button" onClick={onClose} disabled={busy} className={btnSecondary}>
@@ -161,42 +194,168 @@ export default function SiswaFormModal({
           )}
         </div>
 
-        <div>
-          <label
-            htmlFor="siswa-nourut"
-            className="mb-1.5 block text-sm font-semibold text-slate-800"
-          >
-            Nomor Urut Absen{' '}
-            {!isEdit && <span className="font-normal text-slate-500">(opsional)</span>}
-          </label>
-          <input
-            id="siswa-nourut"
-            type="number"
-            inputMode="numeric"
-            min="1"
-            value={noUrut}
-            onChange={(e) => setNoUrut(e.target.value)}
-            placeholder={!isEdit && nextNoUrut ? `Otomatis: ${nextNoUrut}` : ''}
-            aria-invalid={Boolean(errors.noUrut)}
-            aria-describedby="siswa-nourut-help"
-            className={`${inputBase} max-w-44 ${errors.noUrut ? 'border-rose-400' : ''}`}
-          />
-          <div id="siswa-nourut-help" className="mt-1.5 text-sm">
-            {errors.noUrut ? (
-              <p className="text-rose-700">{errors.noUrut}</p>
-            ) : bentrok ? (
-              <p className="text-amber-800">
-                Nomor {noUrutNum} sudah dipakai oleh {bentrok.nama_murid}.
-              </p>
-            ) : (
-              !isEdit && (
-                <p className="text-slate-600">
-                  Jika dikosongkan, sistem otomatis mengisi nomor urut berikutnya ({nextNoUrut}).
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <label
+              htmlFor="siswa-nourut"
+              className="mb-1.5 block text-sm font-semibold text-slate-800"
+            >
+              Nomor Urut Absen{' '}
+              {!isEdit && <span className="font-normal text-slate-500">(opsional)</span>}
+            </label>
+            <input
+              id="siswa-nourut"
+              type="number"
+              inputMode="numeric"
+              min="1"
+              value={noUrut}
+              onChange={(e) => setNoUrut(e.target.value)}
+              placeholder={!isEdit && nextNoUrut ? `Otomatis: ${nextNoUrut}` : ''}
+              aria-invalid={Boolean(errors.noUrut)}
+              aria-describedby="siswa-nourut-help"
+              className={`${inputBase} ${errors.noUrut ? 'border-rose-400' : ''}`}
+            />
+            <div id="siswa-nourut-help" className="mt-1.5 text-xs">
+              {errors.noUrut ? (
+                <p className="text-rose-700">{errors.noUrut}</p>
+              ) : bentrok ? (
+                <p className="text-amber-800">
+                  Nomor {noUrutNum} sudah dipakai oleh {bentrok.nama_murid}.
                 </p>
-              )
-            )}
+              ) : (
+                !isEdit && (
+                  <p className="text-slate-600">
+                    Jika kosong, otomatis diisi {nextNoUrut}.
+                  </p>
+                )
+              )}
+            </div>
           </div>
+
+          {isEdit && isAdmin && kelasList.length > 0 && (
+            <div>
+              <label
+                htmlFor="siswa-kelas"
+                className="mb-1.5 block text-sm font-semibold text-slate-800"
+              >
+                Kelas Saat Ini
+              </label>
+              <select
+                id="siswa-kelas"
+                value={targetKelasId}
+                onChange={(e) => setTargetKelasId(e.target.value)}
+                className={inputBase}
+              >
+                {kelasList.map((k) => (
+                  <option key={k.id} value={k.id}>
+                    Kelas {k.nama_kelas}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
+
+        {/* Biodata & Kontak (Opsional) */}
+        <fieldset className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
+          <legend className="px-1 text-xs font-bold uppercase tracking-wider text-slate-700">
+            Biodata & Kontak Siswa (Opsional)
+          </legend>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label htmlFor="siswa-nipd" className="mb-1 block text-xs font-semibold text-slate-700">
+                NIPD (Nomor Induk)
+              </label>
+              <input
+                id="siswa-nipd"
+                type="text"
+                value={nipd}
+                onChange={(e) => setNipd(e.target.value)}
+                placeholder="Contoh: 242501001"
+                className={inputBase}
+              />
+            </div>
+            <div>
+              <label htmlFor="siswa-nisn" className="mb-1 block text-xs font-semibold text-slate-700">
+                NISN
+              </label>
+              <input
+                id="siswa-nisn"
+                type="text"
+                value={nisn}
+                onChange={(e) => setNisn(e.target.value)}
+                placeholder="Contoh: 0151234567"
+                className={inputBase}
+              />
+            </div>
+            <div>
+              <label htmlFor="siswa-nik" className="mb-1 block text-xs font-semibold text-slate-700">
+                NIK
+              </label>
+              <input
+                id="siswa-nik"
+                type="text"
+                value={nik}
+                onChange={(e) => setNik(e.target.value)}
+                placeholder="16 digit NIK siswa"
+                className={inputBase}
+              />
+            </div>
+            <div>
+              <label htmlFor="siswa-nohp" className="mb-1 block text-xs font-semibold text-slate-700">
+                Nomor HP / WhatsApp Orang Tua
+              </label>
+              <input
+                id="siswa-nohp"
+                type="tel"
+                value={noHp}
+                onChange={(e) => setNoHp(e.target.value)}
+                placeholder="Contoh: 081234567890"
+                className={inputBase}
+              />
+            </div>
+            <div>
+              <label htmlFor="siswa-tmplahir" className="mb-1 block text-xs font-semibold text-slate-700">
+                Tempat Lahir
+              </label>
+              <input
+                id="siswa-tmplahir"
+                type="text"
+                value={tempatLahir}
+                onChange={(e) => setTempatLahir(e.target.value)}
+                placeholder="Contoh: Jakarta"
+                className={inputBase}
+              />
+            </div>
+            <div>
+              <label htmlFor="siswa-tgllahir" className="mb-1 block text-xs font-semibold text-slate-700">
+                Tanggal Lahir
+              </label>
+              <input
+                id="siswa-tgllahir"
+                type="date"
+                value={tanggalLahir}
+                onChange={(e) => setTanggalLahir(e.target.value)}
+                className={inputBase}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="siswa-alamat" className="mb-1 block text-xs font-semibold text-slate-700">
+              Alamat Tempat Tinggal
+            </label>
+            <textarea
+              id="siswa-alamat"
+              rows={2}
+              value={alamat}
+              onChange={(e) => setAlamat(e.target.value)}
+              placeholder="Contoh: Jl. Kebagusan Raya No. 14, Pasar Minggu, Jakarta Selatan"
+              className={inputBase}
+            />
+          </div>
+        </fieldset>
 
         {isEdit && isAdmin && (
           <fieldset className="space-y-2.5 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">

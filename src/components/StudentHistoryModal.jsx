@@ -99,12 +99,27 @@ function SemesterSummaryCard({ semesterKey, info, active, onSelect }) {
   );
 }
 
+const NAMA_BULAN_LENGKAP = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+];
+
+const formatTglIndo = (isoDate) => {
+  if (!isoDate) return '-';
+  const parts = String(isoDate).split('T')[0].split('-');
+  if (parts.length !== 3) return isoDate;
+  const [y, m, d] = parts;
+  const mName = NAMA_BULAN_LENGKAP[parseInt(m, 10) - 1] || m;
+  return `${parseInt(d, 10)} ${mName} ${y}`;
+};
+
 /**
- * Popup card riwayat kehadiran siswa per Tahun Ajaran (Semester Ganjil & Genap).
+ * Popup card detail siswa: Riwayat Kehadiran per Tahun Ajaran (Ganjil & Genap) + Biodata & Jejak Kelas.
  * Dapat dibuka dari halaman Presensi Harian maupun Kelola Data Siswa.
  */
 export default function StudentHistoryModal({ open, siswa, onClose }) {
   const muridId = siswa?.id || siswa?.murid_id;
+  const [activeTab, setActiveTab] = useState('kehadiran');
   const [selectedTA, setSelectedTA] = useState('');
   const [semesterView, setSemesterView] = useState('ganjil');
   const [expandedMonthKey, setExpandedMonthKey] = useState(null);
@@ -164,6 +179,8 @@ export default function StudentHistoryModal({ open, siswa, onClose }) {
   const muridInfo = historyData?.murid || siswa;
   const availableTA = historyData?.available_tahun_ajaran || [];
   const activeTA = historyData?.tahun_ajaran || selectedTA;
+  const kelasTA = historyData?.kelas_tahun_ajaran || null;
+  const riwayatKelas = historyData?.riwayat_kelas || [];
   const ganjil = historyData?.semester?.ganjil;
   const genap = historyData?.semester?.genap;
   const tahunan = historyData?.tahunan;
@@ -228,56 +245,198 @@ export default function StudentHistoryModal({ open, siswa, onClose }) {
 
       {!loading && !error && historyData && (
         <div className="space-y-5">
-          {/* Bar Pilihan Tahun Ajaran & Ringkasan Tahunan */}
-          <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <label
-                htmlFor="select-tahun-ajaran"
-                className="text-xs font-bold uppercase tracking-wider text-slate-700"
+          {/* Sub-tab Popup: Riwayat Kehadiran vs Biodata & Jejak Kelas */}
+          <div
+            role="tablist"
+            aria-label="Bagian profil siswa"
+            className="inline-flex w-full rounded-xl border border-slate-200 bg-slate-100 p-1 sm:w-auto"
+          >
+            {[
+              { id: 'kehadiran', label: 'Riwayat Kehadiran' },
+              { id: 'biodata', label: 'Biodata & Jejak Kelas' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`min-h-11 flex-1 rounded-lg px-4 text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-[#098fd1] cursor-pointer sm:flex-none sm:text-sm ${
+                  activeTab === tab.id
+                    ? 'bg-white text-[#0a4ea0] shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
-                Tahun Ajaran
-              </label>
-              {availableTA.length > 0 ? (
-                <select
-                  id="select-tahun-ajaran"
-                  value={activeTA}
-                  onChange={(e) => setSelectedTA(e.target.value)}
-                  className="min-h-11 cursor-pointer rounded-lg border border-slate-300 bg-white px-3 text-sm font-bold text-slate-900 focus:border-[#098fd1] focus:outline-none focus:ring-4 focus:ring-[#098fd1]/15"
-                >
-                  {availableTA.map((ta) => (
-                    <option key={ta} value={ta}>
-                      TA {ta}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <span className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700">
-                  TA {activeTA}
-                </span>
-              )}
-            </div>
-
-            {tahunan && tahunan.total_aktif > 0 && (
-              <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700">
-                <span>Total 1 Tahun Ajaran:</span>
-                <span className="rounded-md bg-emerald-100 px-2 py-1 text-emerald-900">
-                  {tahunan.rekap.H}H
-                </span>
-                <span className="rounded-md bg-amber-100 px-2 py-1 text-amber-900">
-                  {tahunan.rekap.S}S
-                </span>
-                <span className="rounded-md bg-sky-100 px-2 py-1 text-sky-900">
-                  {tahunan.rekap.I}I
-                </span>
-                <span className="rounded-md bg-rose-100 px-2 py-1 text-rose-900">
-                  {tahunan.rekap.A}A
-                </span>
-                <span className="rounded-md bg-[#0a4ea0] px-2.5 py-1 text-white">
-                  {tahunan.persentase_hadir}%
-                </span>
-              </div>
-            )}
+                {tab.label}
+              </button>
+            ))}
           </div>
+
+          {activeTab === 'biodata' ? (
+            <div className="space-y-5">
+              {/* Kartu Biodata Siswa */}
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <h3 className="mb-3 text-sm font-bold text-slate-900">Identitas & Kontak Siswa</h3>
+                <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+                  <div>
+                    <dt className="text-xs font-semibold text-slate-500">Nama Lengkap</dt>
+                    <dd className="mt-0.5 font-bold text-slate-900">{muridInfo?.nama_murid || '-'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-semibold text-slate-500">Status Keaktifan</dt>
+                    <dd className="mt-0.5">
+                      <span className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-bold ${statusBadge.cls}`}>
+                        {statusText}
+                      </span>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-semibold text-slate-500">NIPD (Nomor Induk)</dt>
+                    <dd className="mt-0.5 font-mono font-semibold text-slate-800">{muridInfo?.nipd || '-'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-semibold text-slate-500">NISN</dt>
+                    <dd className="mt-0.5 font-mono font-semibold text-slate-800">{muridInfo?.nisn || '-'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-semibold text-slate-500">NIK</dt>
+                    <dd className="mt-0.5 font-mono font-semibold text-slate-800">{muridInfo?.nik || '-'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-semibold text-slate-500">Nomor HP / WhatsApp</dt>
+                    <dd className="mt-0.5 font-mono font-semibold text-slate-800">{muridInfo?.no_hp || '-'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-semibold text-slate-500">Tempat, Tanggal Lahir</dt>
+                    <dd className="mt-0.5 font-semibold text-slate-800">
+                      {muridInfo?.tempat_lahir || muridInfo?.tanggal_lahir
+                        ? `${muridInfo?.tempat_lahir || '-'}, ${formatTglIndo(muridInfo?.tanggal_lahir)}`
+                        : '-'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-semibold text-slate-500">Kelas & No. Urut Saat Ini</dt>
+                    <dd className="mt-0.5 font-semibold text-slate-800">
+                      Kelas {muridInfo?.nama_kelas || '-'} (No. Urut {muridInfo?.no_urut || '-'})
+                    </dd>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <dt className="text-xs font-semibold text-slate-500">Alamat</dt>
+                    <dd className="mt-0.5 font-medium text-slate-800">{muridInfo?.alamat || '-'}</dd>
+                  </div>
+                </dl>
+              </div>
+
+              {/* Jejak Kelas & Wali Kelas per Tahun Ajaran */}
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <h3 className="mb-3 text-sm font-bold text-slate-900">
+                  Jejak Kelas & Wali Kelas per Tahun Ajaran
+                </h3>
+                {riwayatKelas.length === 0 ? (
+                  <p className="text-sm text-slate-600">
+                    Belum ada catatan histori kelas pada tahun ajaran sebelumnya.
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto rounded-lg border border-slate-200">
+                    <table className="w-full text-left text-xs sm:text-sm">
+                      <thead className="border-b border-slate-200 bg-slate-50 text-slate-700">
+                        <tr>
+                          <th scope="col" className="px-3 py-2.5 font-bold">Tahun Ajaran</th>
+                          <th scope="col" className="px-3 py-2.5 font-bold">Kelas</th>
+                          <th scope="col" className="px-3 py-2.5 font-bold">Wali Kelas</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {riwayatKelas.map((rk) => (
+                          <tr key={rk.tahun_ajaran}>
+                            <td className="px-3 py-2.5 font-bold text-slate-900">
+                              TA {rk.tahun_ajaran}
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <span className="inline-block rounded-full border border-sky-200 bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-800">
+                                Kelas {rk.nama_kelas}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2.5 font-medium text-slate-700">
+                              {rk.nama_wali_kelas || 'Belum tercatat'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {/* Bar Pilihan Tahun Ajaran, Info Kelas/Wali Tahun Tersebut & Ringkasan Tahunan */}
+              <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <label
+                      htmlFor="select-tahun-ajaran"
+                      className="text-xs font-bold uppercase tracking-wider text-slate-700"
+                    >
+                      Tahun Ajaran
+                    </label>
+                    {availableTA.length > 0 ? (
+                      <select
+                        id="select-tahun-ajaran"
+                        value={activeTA}
+                        onChange={(e) => setSelectedTA(e.target.value)}
+                        className="min-h-11 cursor-pointer rounded-lg border border-slate-300 bg-white px-3 text-sm font-bold text-slate-900 focus:border-[#098fd1] focus:outline-none focus:ring-4 focus:ring-[#098fd1]/15"
+                      >
+                        {availableTA.map((ta) => (
+                          <option key={ta} value={ta}>
+                            TA {ta}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700">
+                        TA {activeTA}
+                      </span>
+                    )}
+                  </div>
+
+                  {tahunan && tahunan.total_aktif > 0 && (
+                    <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700">
+                      <span>Total 1 Tahun Ajaran:</span>
+                      <span className="rounded-md bg-emerald-100 px-2 py-1 text-emerald-900">
+                        {tahunan.rekap.H}H
+                      </span>
+                      <span className="rounded-md bg-amber-100 px-2 py-1 text-amber-900">
+                        {tahunan.rekap.S}S
+                      </span>
+                      <span className="rounded-md bg-sky-100 px-2 py-1 text-sky-900">
+                        {tahunan.rekap.I}I
+                      </span>
+                      <span className="rounded-md bg-rose-100 px-2 py-1 text-rose-900">
+                        {tahunan.rekap.A}A
+                      </span>
+                      <span className="rounded-md bg-[#0a4ea0] px-2.5 py-1 text-white">
+                        {tahunan.persentase_hadir}%
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {kelasTA && (
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-slate-200/80 pt-2.5 text-xs text-slate-700">
+                    <span>
+                      Kelas pada TA {activeTA}:{' '}
+                      <strong className="font-bold text-slate-900">Kelas {kelasTA.nama_kelas}</strong>
+                    </span>
+                    <span>
+                      Wali Kelas:{' '}
+                      <strong className="font-bold text-slate-900">
+                        {kelasTA.nama_wali_kelas || 'Belum tercatat'}
+                      </strong>
+                    </span>
+                  </div>
+                )}
+              </div>
 
           {availableTA.length === 0 ? (
             <div className="rounded-xl border border-slate-200 bg-white px-5 py-10 text-center">
@@ -479,6 +638,8 @@ export default function StudentHistoryModal({ open, siswa, onClose }) {
                 </div>
               </div>
             </>
+          )}
+            </div>
           )}
         </div>
       )}

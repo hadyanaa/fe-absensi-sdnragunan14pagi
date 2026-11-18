@@ -5,6 +5,7 @@ import { btnPrimary, Spinner } from '../Modal';
 import SiswaFormModal from './SiswaFormModal';
 import BulkImportModal from './BulkImportModal';
 import DeleteSiswaDialog from './DeleteSiswaDialog';
+import PromoteModal from './PromoteModal';
 import StudentHistoryModal from '../StudentHistoryModal';
 
 const IconPlus = () => (
@@ -276,9 +277,22 @@ export default function SiswaTab({
             />
           </div>
 
-          {/* 2 Tombol Aksi Utama (Khusus daftar Siswa Aktif) */}
+          {/* Tombol Aksi Utama (Khusus daftar Siswa Aktif) */}
           {canEdit && !isArchiveView && (
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setDialog({ type: 'promote', siswa: null })}
+                  disabled={loading || Boolean(error)}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-amber-400 bg-amber-50 px-4 py-2 text-sm font-bold text-amber-950 transition-colors hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-600 cursor-pointer"
+                >
+                  <svg className="h-4 w-4 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                  </svg>
+                  <span>Kenaikan Kelas</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setDialog({ type: 'create', siswa: null })}
@@ -450,9 +464,16 @@ export default function SiswaTab({
                     </button>
                   </td>
                   <td className="px-3 py-2.5 sm:px-4">
-                    <span className="inline-block rounded-full border border-sky-200 bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-800">
-                      {m.nama_kelas || namaKelas}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="inline-block rounded-full border border-sky-200 bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-800">
+                        {m.nama_kelas || namaKelas}
+                      </span>
+                      {m.tahun_ajaran_aktif && !isArchiveView && (
+                        <span className="inline-block rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[11px] font-semibold text-slate-600">
+                          {m.tahun_ajaran_aktif}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 py-2.5 sm:px-4">
                     {(() => {
@@ -508,11 +529,24 @@ export default function SiswaTab({
           siswa={dialog.siswa}
           kelasId={dialog.siswa?.kelas_id || kelasId}
           namaKelas={dialog.siswa?.nama_kelas || namaKelas}
+          kelasList={kelasList}
           daftarSiswa={siswa}
           nextNoUrut={nextNoUrut}
           isAdmin={isAdmin}
           onClose={closeDialog}
           onSaved={handleMutated}
+        />
+      )}
+
+      {/* Modal Kenaikan Kelas & Kelulusan Massal (Admin) */}
+      {dialog.type === 'promote' && (
+        <PromoteModal
+          key={`promote-${kelasId}`}
+          open
+          kelasList={kelasList}
+          initialSourceKelasId={kelasId}
+          onClose={closeDialog}
+          onPromoted={handleMutated}
         />
       )}
 

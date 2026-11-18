@@ -76,6 +76,7 @@ export const getMuridHistory = (id, tahunAjaran) =>
   });
 export const createMurid = (data) => api.post('/murid', data);
 export const createMuridBulk = (data) => api.post('/murid/bulk', data);
+export const promoteMurid = (data) => api.post('/murid/promote', data);
 export const updateMurid = (id, data) => api.put(`/murid/${id}`, data);
 export const deleteMurid = (id) => api.delete(`/murid/${id}`);
 
