@@ -88,7 +88,9 @@ export const deleteKelas = (id, force = false) =>
   api.delete(`/kelas/${id}`, { params: force ? { force: 'true' } : undefined });
 
 // Service Guru (/api/guru)
-export const getGuru = () => api.get('/guru');
+export const getGuru = (status) =>
+  api.get('/guru', { params: status ? { status } : undefined });
+export const getGuruHistory = (id) => api.get(`/guru/${id}/history`);
 export const createGuru = (data) => api.post('/guru', data);
 export const updateGuru = (id, data) => api.put(`/guru/${id}`, data);
 export const deleteGuru = (id) => api.delete(`/guru/${id}`);
