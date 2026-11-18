@@ -5,6 +5,7 @@ import { exportAbsensiToExcel } from '../utils/exportExcel';
 import ControlBar from './ControlBar';
 import KpiCards from './KpiCards';
 import AbsensiGrid from './AbsensiGrid';
+import StudentHistoryModal from './StudentHistoryModal';
 
 const CONFIRM_DISCARD =
   'Ada perubahan presensi yang belum disimpan. Lanjutkan dan buang perubahan tersebut?';
@@ -28,6 +29,7 @@ export default function PresensiTab({
   const [errorState, setErrorState] = useState(null);
   const [saving, setSaving] = useState(false);
   const [reloadTick, setReloadTick] = useState(0);
+  const [historySiswa, setHistorySiswa] = useState(null);
 
   // Buffer perubahan belum disimpan: { "muridId_hari": "H"|"S"|"I"|"A"|null }
   const [stagedChanges, setStagedChanges] = useState({});
@@ -261,6 +263,24 @@ export default function PresensiTab({
           onCellChange={handleCellChange}
           onSetAllPresentForDay={handleSetAllPresent}
           onOpenSiswaTab={onOpenSiswaTab}
+          onSelectStudent={(murid) => {
+            const activeKelas = kelasList.find((k) => k.id === selectedKelasId);
+            setHistorySiswa({
+              id: murid.murid_id,
+              no_urut: murid.no_urut,
+              nama_murid: murid.nama_murid,
+              nama_kelas: activeKelas?.nama_kelas || guru?.nama_kelas || '',
+            });
+          }}
+        />
+      )}
+
+      {historySiswa && (
+        <StudentHistoryModal
+          key={`history-${historySiswa.id}`}
+          open
+          siswa={historySiswa}
+          onClose={() => setHistorySiswa(null)}
         />
       )}
     </div>

@@ -62,12 +62,17 @@ export const getAbsensi = (params) => api.get('/absensi', { params });
 export const saveAbsensiBatch = (rows) => api.post('/absensi', rows);
 
 // Service Siswa (/api/murid)
-export const getMurid = (kelasId, q) =>
+export const getMurid = (kelasId, q, status) =>
   api.get('/murid', {
     params: {
       ...(kelasId ? { kelas_id: kelasId } : {}),
       ...(q ? { q } : {}),
+      ...(status ? { status } : {}),
     },
+  });
+export const getMuridHistory = (id, tahunAjaran) =>
+  api.get(`/murid/${id}/history`, {
+    params: tahunAjaran ? { tahun_ajaran: tahunAjaran } : undefined,
   });
 export const createMurid = (data) => api.post('/murid', data);
 export const createMuridBulk = (data) => api.post('/murid/bulk', data);

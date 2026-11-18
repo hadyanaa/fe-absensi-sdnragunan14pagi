@@ -2,6 +2,24 @@ import React, { useRef, useState } from 'react';
 import Modal, { btnPrimary, btnSecondary, inputBase, Spinner } from '../Modal';
 import { createMurid, updateMurid, getErrorMessage } from '../../services/api';
 
+const STATUS_OPTIONS = [
+  {
+    value: 'AKTIF',
+    label: 'Aktif Belajar',
+    desc: 'Tampil di daftar presensi harian kelas.',
+  },
+  {
+    value: 'LULUS',
+    label: 'Lulus / Alumni',
+    desc: 'Arsip kelulusan. Riwayat presensi tetap tersimpan.',
+  },
+  {
+    value: 'MUTASI_KELUAR',
+    label: 'Mutasi Keluar',
+    desc: 'Pindah sekolah. Tidak diabsen lagi, riwayat tetap ada.',
+  },
+];
+
 export default function SiswaFormModal({
   open,
   mode,
@@ -10,6 +28,7 @@ export default function SiswaFormModal({
   namaKelas,
   daftarSiswa,
   nextNoUrut,
+  isAdmin = false,
   onClose,
   onSaved,
 }) {
@@ -18,13 +37,25 @@ export default function SiswaFormModal({
 
   const [nama, setNama] = useState(() => (isEdit ? siswa?.nama_murid || '' : ''));
   const [noUrut, setNoUrut] = useState(() => (isEdit ? String(siswa?.no_urut ?? '') : ''));
+  const [status, setStatus] = useState(() => (isEdit ? siswa?.status || 'AKTIF' : 'AKTIF'));
+  const [tahunKeluar, setTahunKeluar] = useState(() =>
+    isEdit ? siswa?.tahun_keluar || '' : ''
+  );
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
   const [busy, setBusy] = useState(false);
 
   const noUrutNum = Number(noUrut);
   const bentrok =
-    noUrut !== '' && daftarSiswa.find((m) => m.no_urut === noUrutNum && m.id !== siswa?.id);
+    noUrut !== '' &&
+    status === 'AKTIF' &&
+    daftarSiswa.find(
+      (m) =>
+        m.no_urut === noUrutNum &&
+        m.id !== siswa?.id &&
+        m.kelas_id === kelasId &&
+        (m.status || 'AKTIF') === 'AKTIF'
+    );
 
   const validate = () => {
     const next = {};
@@ -51,6 +82,10 @@ export default function SiswaFormModal({
     try {
       const payload = { nama_murid: nama.trim() };
       if (noUrut !== '') payload.no_urut = noUrutNum;
+      if (isEdit && isAdmin) {
+        payload.status = status;
+        payload.tahun_keluar = status === 'AKTIF' ? null : tahunKeluar.trim() || null;
+      }
 
       const res = isEdit
         ? await updateMurid(siswa.id, payload)
@@ -162,6 +197,63 @@ export default function SiswaFormModal({
             )}
           </div>
         </div>
+
+        {isEdit && isAdmin && (
+          <fieldset className="space-y-2.5 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
+            <legend className="px-1 text-xs font-bold uppercase tracking-wider text-slate-700">
+              Status Keaktifan Siswa
+            </legend>
+            <div className="space-y-2">
+              {STATUS_OPTIONS.map((opt) => {
+                const selected = status === opt.value;
+                return (
+                  <label
+                    key={opt.value}
+                    className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-lg border px-3 py-2.5 transition-colors ${
+                      selected
+                        ? 'border-[#0a4ea0] bg-white ring-2 ring-[#098fd1]/20'
+                        : 'border-slate-200 bg-white/70 hover:bg-white'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="status-keaktifan"
+                      value={opt.value}
+                      checked={selected}
+                      onChange={() => setStatus(opt.value)}
+                      className="mt-1 h-4 w-4 accent-[#0a4ea0]"
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-sm font-bold text-slate-900">{opt.label}</span>
+                      <span className="block text-xs text-slate-600">{opt.desc}</span>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+
+            {status !== 'AKTIF' && (
+              <div className="pt-1">
+                <label
+                  htmlFor="siswa-tahun-keluar"
+                  className="mb-1 block text-xs font-bold text-slate-800"
+                >
+                  Tahun {status === 'LULUS' ? 'Lulus' : 'Mutasi Keluar'}{' '}
+                  <span className="font-normal text-slate-500">(opsional)</span>
+                </label>
+                <input
+                  id="siswa-tahun-keluar"
+                  type="text"
+                  maxLength={20}
+                  value={tahunKeluar}
+                  onChange={(e) => setTahunKeluar(e.target.value)}
+                  placeholder="Contoh: 2026 atau 2025/2026"
+                  className={inputBase}
+                />
+              </div>
+            )}
+          </fieldset>
+        )}
       </form>
     </Modal>
   );

@@ -5,6 +5,7 @@ import { btnPrimary, Spinner } from '../Modal';
 import SiswaFormModal from './SiswaFormModal';
 import BulkImportModal from './BulkImportModal';
 import DeleteSiswaDialog from './DeleteSiswaDialog';
+import StudentHistoryModal from '../StudentHistoryModal';
 
 const IconPlus = () => (
   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -45,6 +46,21 @@ const IconTrash = () => (
   </svg>
 );
 
+const STATUS_BADGE = {
+  AKTIF: {
+    label: 'Aktif',
+    cls: 'border-emerald-200 bg-emerald-50 text-emerald-800',
+  },
+  LULUS: {
+    label: 'Lulus',
+    cls: 'border-amber-300 bg-amber-50 text-amber-900',
+  },
+  MUTASI_KELUAR: {
+    label: 'Mutasi Keluar',
+    cls: 'border-slate-300 bg-slate-100 text-slate-800',
+  },
+};
+
 export default function SiswaTab({
   guru,
   kelasList,
@@ -60,6 +76,8 @@ export default function SiswaTab({
   const namaKelas =
     kelasList.find((k) => k.id === kelasId)?.nama_kelas || guru?.nama_kelas || '';
 
+  const [statusFilter, setStatusFilter] = useState('AKTIF');
+  const [archiveAllClasses, setArchiveAllClasses] = useState(true);
   const [siswa, setSiswa] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -68,15 +86,19 @@ export default function SiswaTab({
   const [reloadTick, setReloadTick] = useState(0);
   const [dialog, setDialog] = useState({ type: null, siswa: null });
 
+  const isArchiveView = statusFilter === 'NONAKTIF';
+  const effectiveKelasId = isArchiveView && !isWali && archiveAllClasses ? null : kelasId;
+
   useEffect(() => {
-    if (!kelasId) return undefined;
+    if (!isArchiveView && !kelasId) return undefined;
+    if (isArchiveView && isWali && !kelasId) return undefined;
     let active = true;
 
     const load = async () => {
       setLoading(true);
       setError('');
       try {
-        const res = await getMurid(kelasId);
+        const res = await getMurid(effectiveKelasId, undefined, statusFilter);
         if (!active) return;
         if (res.data?.success) {
           setSiswa(res.data.data || []);
@@ -95,7 +117,7 @@ export default function SiswaTab({
     return () => {
       active = false;
     };
-  }, [kelasId, reloadTick]);
+  }, [effectiveKelasId, kelasId, statusFilter, isArchiveView, isWali, reloadTick]);
 
   const nextNoUrut = siswa.reduce((max, m) => Math.max(max, m.no_urut || 0), 0) + 1;
 
@@ -118,7 +140,7 @@ export default function SiswaTab({
     onRosterChange?.();
   };
 
-  if (!kelasId) {
+  if ((!isArchiveView || isWali) && !kelasId) {
     return (
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
         {isWali
@@ -138,34 +160,83 @@ export default function SiswaTab({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-2.5">
             <h2 id="judul-siswa" className="text-lg font-bold text-slate-900 sm:text-xl">
-              Daftar Siswa Kelas {namaKelas}
+              {isArchiveView
+                ? isWali || !archiveAllClasses
+                  ? `Arsip Alumni & Mutasi Kelas ${namaKelas}`
+                  : 'Arsip Alumni & Mutasi Keluar (Semua Kelas)'
+                : `Daftar Siswa Kelas ${namaKelas}`}
             </h2>
             {!loading && !error && (
               <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-0.5 text-xs font-bold text-[#0a4ea0]">
-                {siswa.length} Siswa Terdaftar
+                {siswa.length} {isArchiveView ? 'Arsip Siswa' : 'Siswa Aktif'}
               </span>
             )}
           </div>
 
-          {!isWali && (
-            <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-              <span>Pilih Kelas:</span>
-              <select
-                value={selectedKelasId || ''}
-                onChange={(e) => {
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Switch Siswa Aktif vs Arsip Alumni & Mutasi */}
+            <div
+              role="group"
+              aria-label="Filter status keaktifan siswa"
+              className="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-0.5"
+            >
+              <button
+                type="button"
+                onClick={() => {
                   setQuery('');
-                  onSelectKelas(Number(e.target.value));
+                  setStatusFilter('AKTIF');
                 }}
-                className="min-h-11 cursor-pointer rounded-lg border border-slate-300 bg-white px-3 text-sm font-bold text-slate-900 focus:border-[#098fd1] focus:outline-none focus:ring-4 focus:ring-[#098fd1]/15"
+                className={`min-h-11 rounded-lg px-3.5 text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-[#098fd1] cursor-pointer sm:text-sm ${
+                  !isArchiveView
+                    ? 'bg-white text-[#0a4ea0] shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
-                {kelasList.map((k) => (
-                  <option key={k.id} value={k.id}>
-                    Kelas {k.nama_kelas} ({k.jumlah_murid || 0} Siswa)
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+                Siswa Aktif
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery('');
+                  setStatusFilter('NONAKTIF');
+                }}
+                className={`min-h-11 rounded-lg px-3.5 text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-[#098fd1] cursor-pointer sm:text-sm ${
+                  isArchiveView
+                    ? 'bg-white text-[#0a4ea0] shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Alumni & Mutasi
+              </button>
+            </div>
+
+            {!isWali && (
+              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <span>Kelas:</span>
+                <select
+                  value={isArchiveView && archiveAllClasses ? 'ALL' : selectedKelasId || ''}
+                  onChange={(e) => {
+                    setQuery('');
+                    const val = e.target.value;
+                    if (val === 'ALL') {
+                      setArchiveAllClasses(true);
+                    } else {
+                      setArchiveAllClasses(false);
+                      onSelectKelas(Number(val));
+                    }
+                  }}
+                  className="min-h-11 cursor-pointer rounded-lg border border-slate-300 bg-white px-3 text-sm font-bold text-slate-900 focus:border-[#098fd1] focus:outline-none focus:ring-4 focus:ring-[#098fd1]/15"
+                >
+                  {isArchiveView && <option value="ALL">Semua Kelas</option>}
+                  {kelasList.map((k) => (
+                    <option key={k.id} value={k.id}>
+                      Kelas {k.nama_kelas} ({k.jumlah_murid || 0} Aktif)
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+          </div>
         </div>
 
         {!canEdit && (
@@ -205,8 +276,8 @@ export default function SiswaTab({
             />
           </div>
 
-          {/* 2 Tombol Aksi Utama */}
-          {canEdit && (
+          {/* 2 Tombol Aksi Utama (Khusus daftar Siswa Aktif) */}
+          {canEdit && !isArchiveView && (
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <button
                 type="button"
@@ -251,13 +322,21 @@ export default function SiswaTab({
         </div>
       ) : siswa.length === 0 ? (
         <div className="px-6 py-12 text-center">
-          <p className="font-bold text-slate-800">Belum ada siswa di Kelas {namaKelas}</p>
-          <p className="mx-auto mt-1 max-w-md text-sm text-slate-600">
-            {canEdit
-              ? 'Salin daftar nama siswa dari WhatsApp atau Excel, lalu gunakan tombol Import Banyak Siswa untuk menambahkan sekaligus.'
-              : 'Wali kelas belum memasukkan data siswa untuk kelas ini.'}
+          <p className="font-bold text-slate-800">
+            {isArchiveView
+              ? 'Belum ada data alumni atau mutasi keluar'
+              : `Belum ada siswa aktif di Kelas ${namaKelas}`}
           </p>
-          {canEdit && (
+          <p className="mx-auto mt-1 max-w-md text-sm text-slate-600">
+            {isArchiveView
+              ? isAdmin
+                ? 'Siswa yang statusnya diubah menjadi Lulus / Alumni atau Mutasi Keluar melalui tombol Edit akan tercatat di sini beserta seluruh riwayat kehadirannya.'
+                : 'Belum ada siswa berstatus Lulus atau Mutasi Keluar di kelas ini.'
+              : canEdit
+                ? 'Salin daftar nama siswa dari WhatsApp atau Excel, lalu gunakan tombol Import Banyak Siswa untuk menambahkan sekaligus.'
+                : 'Wali kelas belum memasukkan data siswa untuk kelas ini.'}
+          </p>
+          {canEdit && !isArchiveView && (
             <button
               type="button"
               onClick={() => setDialog({ type: 'bulk', siswa: null })}
@@ -324,6 +403,9 @@ export default function SiswaTab({
                 <th scope="col" className="px-3 py-3 font-bold sm:px-4">
                   Kelas
                 </th>
+                <th scope="col" className="px-3 py-3 font-bold sm:px-4">
+                  Status
+                </th>
                 {canEdit && (
                   <th scope="col" className="px-3 py-3 text-right font-bold sm:px-6">
                     Aksi
@@ -337,13 +419,52 @@ export default function SiswaTab({
                   <td className="px-4 py-2.5 font-mono font-bold tabular-nums text-slate-700 sm:px-6">
                     {m.no_urut}
                   </td>
-                  <td className="px-3 py-2.5 font-semibold break-words text-slate-900 sm:px-4">
-                    {m.nama_murid}
+                  <td className="px-3 py-1.5 font-semibold break-words text-slate-900 sm:px-4">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDialog({
+                          type: 'history',
+                          siswa: { ...m, nama_kelas: m.nama_kelas || namaKelas },
+                        })
+                      }
+                      title={`Lihat riwayat kehadiran ${m.nama_murid} per tahun ajaran`}
+                      aria-label={`Lihat riwayat kehadiran ${m.nama_murid}`}
+                      className="group inline-flex min-h-11 items-center gap-2 rounded-lg px-1.5 py-1 text-left transition-colors hover:bg-blue-50 hover:text-[#0a4ea0] focus-visible:outline-2 focus-visible:outline-[#098fd1] cursor-pointer"
+                    >
+                      <span>{m.nama_murid}</span>
+                      <svg
+                        className="h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-[#0a4ea0]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </button>
                   </td>
                   <td className="px-3 py-2.5 sm:px-4">
                     <span className="inline-block rounded-full border border-sky-200 bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-800">
                       {m.nama_kelas || namaKelas}
                     </span>
+                  </td>
+                  <td className="px-3 py-2.5 sm:px-4">
+                    {(() => {
+                      const st = STATUS_BADGE[m.status || 'AKTIF'] || STATUS_BADGE.AKTIF;
+                      return (
+                        <span
+                          className={`inline-block rounded-full border px-2.5 py-0.5 text-xs font-bold ${st.cls}`}
+                        >
+                          {m.tahun_keluar ? `${st.label} (${m.tahun_keluar})` : st.label}
+                        </span>
+                      );
+                    })()}
                   </td>
                   {canEdit && (
                     <td className="px-3 py-1.5 sm:px-6">
@@ -385,10 +506,11 @@ export default function SiswaTab({
           open
           mode={dialog.type}
           siswa={dialog.siswa}
-          kelasId={kelasId}
-          namaKelas={namaKelas}
+          kelasId={dialog.siswa?.kelas_id || kelasId}
+          namaKelas={dialog.siswa?.nama_kelas || namaKelas}
           daftarSiswa={siswa}
           nextNoUrut={nextNoUrut}
+          isAdmin={isAdmin}
           onClose={closeDialog}
           onSaved={handleMutated}
         />
@@ -416,6 +538,16 @@ export default function SiswaTab({
           siswa={dialog.siswa}
           onClose={closeDialog}
           onDeleted={handleMutated}
+        />
+      )}
+
+      {/* Popup Card Riwayat Kehadiran Siswa Per Tahun Ajaran */}
+      {dialog.type === 'history' && (
+        <StudentHistoryModal
+          key={`history-${dialog.siswa?.id}`}
+          open
+          siswa={dialog.siswa}
+          onClose={closeDialog}
         />
       )}
     </section>

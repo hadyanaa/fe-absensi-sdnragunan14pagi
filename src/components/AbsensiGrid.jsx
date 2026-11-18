@@ -21,6 +21,7 @@ export default function AbsensiGrid({
   onCellChange,
   onSetAllPresentForDay,
   onOpenSiswaTab,
+  onSelectStudent,
 }) {
   const daysArray = Array.from({ length: totalHari || 31 }, (_, i) => i + 1);
 
@@ -130,7 +131,7 @@ export default function AbsensiGrid({
         </div>
 
         <p className="text-xs text-slate-600">
-          Klik sel untuk mengganti status. Klik kanan untuk mengosongkan.
+          Klik sel tanggal untuk mengubah status, atau klik nama murid untuk melihat riwayat per tahun ajaran.
         </p>
       </div>
 
@@ -216,8 +217,34 @@ export default function AbsensiGrid({
                     </td>
 
                     {/* Sticky Nama Murid */}
-                    <td className="sticky left-12 z-20 max-w-[240px] truncate border-r border-slate-200 bg-white px-4 py-2 font-semibold text-slate-900">
-                      {murid.nama_murid}
+                    <td className="sticky left-12 z-20 max-w-[240px] border-r border-slate-200 bg-white px-2 py-1 font-semibold text-slate-900">
+                      {onSelectStudent ? (
+                        <button
+                          type="button"
+                          onClick={() => onSelectStudent(murid)}
+                          title={`Lihat riwayat kehadiran ${murid.nama_murid} per tahun ajaran`}
+                          aria-label={`Lihat riwayat kehadiran ${murid.nama_murid}`}
+                          className="group flex min-h-11 w-full items-center justify-between gap-2 rounded-lg px-2 text-left transition-colors hover:bg-blue-50 hover:text-[#0a4ea0] focus-visible:outline-2 focus-visible:outline-[#098fd1] cursor-pointer"
+                        >
+                          <span className="truncate">{murid.nama_murid}</span>
+                          <svg
+                            className="h-3.5 w-3.5 shrink-0 text-slate-400 transition-colors group-hover:text-[#0a4ea0]"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        </button>
+                      ) : (
+                        <span className="block truncate px-2 py-2">{murid.nama_murid}</span>
+                      )}
                     </td>
 
                     {/* Cell Tanggal */}
