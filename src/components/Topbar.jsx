@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import logoSekolah from '../assets/logo-sekolah.jpg';
 
 export default function Topbar() {
   const { guru, logout } = useAuth();
@@ -11,13 +12,17 @@ export default function Topbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-blue-900/10 bg-white px-4 py-3 sm:px-8">
       <div className="mx-auto flex max-w-[1540px] items-center justify-between gap-3">
-        {/* Brand SDN 14 Ragunan */}
+        {/* Brand SDN Ragunan 14 Pagi */}
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-[#0a4ea0] to-[#098fd1] text-lg font-black text-white shadow-sm select-none">
-            14
-          </div>
+          <img
+            src={logoSekolah}
+            alt="Logo SDN Ragunan 14 Pagi"
+            className="h-11 w-11 shrink-0 rounded-xl bg-white object-contain p-0.5 ring-1 ring-blue-900/10 select-none"
+          />
           <div>
-            <h1 className="text-base font-bold leading-tight text-slate-900">SDN 14 Ragunan</h1>
+            <h1 className="text-base font-bold leading-tight text-slate-900">
+              SDN Ragunan 14 Pagi
+            </h1>
             <p className="text-xs font-semibold text-[#0a4ea0]">Sistem Presensi & Data Siswa</p>
           </div>
         </div>

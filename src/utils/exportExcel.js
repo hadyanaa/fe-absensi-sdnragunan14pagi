@@ -252,7 +252,7 @@ export function exportAbsensiToExcel({
     `<row r="1" ht="22" customHeight="1">${strCell(
       'A1',
       1,
-      `DAFTAR HADIR SISWA SDN 14 RAGUNAN - KELAS ${namaKelas}`
+      `DAFTAR HADIR SISWA SDN RAGUNAN 14 PAGI - KELAS ${namaKelas}`
     )}</row>`
   );
   rowsXml.push(
