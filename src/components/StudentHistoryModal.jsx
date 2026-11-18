@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { getMuridHistory, getErrorMessage } from '../services/api';
+import { hitungUsia } from '../utils/usia';
 import Modal, { btnPrimary, btnSecondary, Spinner } from './Modal';
 
 const NAMA_BULAN_SINGKAT = [
@@ -291,6 +292,18 @@ export default function StudentHistoryModal({ open, siswa, onClose }) {
                     </dd>
                   </div>
                   <div>
+                    <dt className="text-xs font-semibold text-slate-500">Jenis Kelamin</dt>
+                    <dd className="mt-0.5 font-semibold text-slate-800">{muridInfo?.jenis_kelamin || '-'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-semibold text-slate-500">Agama</dt>
+                    <dd className="mt-0.5 font-semibold text-slate-800">{muridInfo?.agama || '-'}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-semibold text-slate-500">No. KK (Kartu Keluarga)</dt>
+                    <dd className="mt-0.5 font-mono font-semibold text-slate-800">{muridInfo?.no_kk || '-'}</dd>
+                  </div>
+                  <div>
                     <dt className="text-xs font-semibold text-slate-500">NIPD (Nomor Induk)</dt>
                     <dd className="mt-0.5 font-mono font-semibold text-slate-800">{muridInfo?.nipd || '-'}</dd>
                   </div>
@@ -307,10 +320,14 @@ export default function StudentHistoryModal({ open, siswa, onClose }) {
                     <dd className="mt-0.5 font-mono font-semibold text-slate-800">{muridInfo?.no_hp || '-'}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs font-semibold text-slate-500">Tempat, Tanggal Lahir</dt>
+                    <dt className="text-xs font-semibold text-slate-500">Tempat, Tanggal Lahir (Usia)</dt>
                     <dd className="mt-0.5 font-semibold text-slate-800">
                       {muridInfo?.tempat_lahir || muridInfo?.tanggal_lahir
-                        ? `${muridInfo?.tempat_lahir || '-'}, ${formatTglIndo(muridInfo?.tanggal_lahir)}`
+                        ? `${muridInfo?.tempat_lahir || '-'}, ${formatTglIndo(muridInfo?.tanggal_lahir)}${
+                            hitungUsia(muridInfo?.tanggal_lahir)
+                              ? ` (${hitungUsia(muridInfo?.tanggal_lahir).label})`
+                              : ''
+                          }`
                         : '-'}
                     </dd>
                   </div>

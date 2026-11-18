@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { getMurid, getErrorMessage } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { hitungUsia } from '../../utils/usia';
 import { btnPrimary, Spinner } from '../Modal';
 import SiswaFormModal from './SiswaFormModal';
 import BulkImportModal from './BulkImportModal';
@@ -412,10 +413,16 @@ export default function SiswaTab({
                   </button>
                 </th>
                 <th scope="col" className="px-3 py-3 font-bold sm:px-4">
-                  Nama Lengkap Murid
+                  Nama Lengkap
+                </th>
+                <th scope="col" className="px-3 py-3 font-bold sm:px-4">
+                  Jenis Kelamin
                 </th>
                 <th scope="col" className="px-3 py-3 font-bold sm:px-4">
                   Kelas
+                </th>
+                <th scope="col" className="px-3 py-3 font-bold sm:px-4">
+                  Usia
                 </th>
                 <th scope="col" className="px-3 py-3 font-bold sm:px-4">
                   Status
@@ -463,6 +470,9 @@ export default function SiswaTab({
                       </svg>
                     </button>
                   </td>
+                  <td className="px-3 py-2.5 text-xs font-medium text-slate-700 sm:px-4 sm:text-sm">
+                    {m.jenis_kelamin || <span className="text-slate-400">-</span>}
+                  </td>
                   <td className="px-3 py-2.5 sm:px-4">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span className="inline-block rounded-full border border-sky-200 bg-sky-100 px-2.5 py-0.5 text-xs font-bold text-sky-800">
@@ -474,6 +484,16 @@ export default function SiswaTab({
                         </span>
                       )}
                     </div>
+                  </td>
+                  <td className="px-3 py-2.5 text-xs font-semibold tabular-nums text-slate-700 sm:px-4 sm:text-sm">
+                    {(() => {
+                      const usia = hitungUsia(m.tanggal_lahir);
+                      return usia ? (
+                        <span title={`Lahir: ${m.tanggal_lahir}`}>{usia.label}</span>
+                      ) : (
+                        <span className="font-normal text-slate-400">-</span>
+                      );
+                    })()}
                   </td>
                   <td className="px-3 py-2.5 sm:px-4">
                     {(() => {

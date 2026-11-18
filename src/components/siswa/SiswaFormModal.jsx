@@ -43,6 +43,11 @@ export default function SiswaFormModal({
   );
 
   // Biodata opsional (boleh diedit Admin & Wali Kelas masing-masing)
+  const [jenisKelamin, setJenisKelamin] = useState(() =>
+    isEdit ? siswa?.jenis_kelamin || '' : ''
+  );
+  const [agama, setAgama] = useState(() => (isEdit ? siswa?.agama || '' : ''));
+  const [noKk, setNoKk] = useState(() => (isEdit ? siswa?.no_kk || '' : ''));
   const [nipd, setNipd] = useState(() => (isEdit ? siswa?.nipd || '' : ''));
   const [nisn, setNisn] = useState(() => (isEdit ? siswa?.nisn || '' : ''));
   const [nik, setNik] = useState(() => (isEdit ? siswa?.nik || '' : ''));
@@ -101,6 +106,9 @@ export default function SiswaFormModal({
     try {
       const payload = {
         nama_murid: nama.trim(),
+        jenis_kelamin: jenisKelamin || null,
+        agama: agama || null,
+        no_kk: noKk.trim() || null,
         nipd: nipd.trim() || null,
         nisn: nisn.trim() || null,
         nik: nik.trim() || null,
@@ -263,6 +271,53 @@ export default function SiswaFormModal({
           </legend>
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label htmlFor="siswa-jk" className="mb-1 block text-xs font-semibold text-slate-700">
+                Jenis Kelamin
+              </label>
+              <select
+                id="siswa-jk"
+                value={jenisKelamin}
+                onChange={(e) => setJenisKelamin(e.target.value)}
+                className={inputBase}
+              >
+                <option value="">Belum diisi</option>
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="siswa-agama" className="mb-1 block text-xs font-semibold text-slate-700">
+                Agama
+              </label>
+              <select
+                id="siswa-agama"
+                value={agama}
+                onChange={(e) => setAgama(e.target.value)}
+                className={inputBase}
+              >
+                <option value="">Belum diisi</option>
+                <option value="Islam">Islam</option>
+                <option value="Kristen Protestan">Kristen Protestan</option>
+                <option value="Katolik">Katolik</option>
+                <option value="Hindu">Hindu</option>
+                <option value="Buddha">Buddha</option>
+                <option value="Konghucu">Konghucu</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="siswa-nokk" className="mb-1 block text-xs font-semibold text-slate-700">
+                No. KK (Kartu Keluarga)
+              </label>
+              <input
+                id="siswa-nokk"
+                type="text"
+                value={noKk}
+                onChange={(e) => setNoKk(e.target.value)}
+                placeholder="16 digit nomor KK"
+                className={inputBase}
+              />
+            </div>
             <div>
               <label htmlFor="siswa-nipd" className="mb-1 block text-xs font-semibold text-slate-700">
                 NIPD (Nomor Induk)
