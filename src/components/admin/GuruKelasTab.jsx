@@ -18,15 +18,27 @@ function GuruFormModal({ mode, targetGuru, kelasList, isAdmin, onClose, onSaved 
   const isEdit = mode === 'edit';
   const firstRef = useRef(null);
 
-  const [nip, setNip] = useState(isEdit ? targetGuru?.nip || '' : '');
+  const [username, setUsername] = useState(
+    isEdit ? targetGuru?.username || targetGuru?.nip || '' : ''
+  );
+  const [nipNikki, setNipNikki] = useState(isEdit ? targetGuru?.nip_nikki || '' : '');
   const [namaGuru, setNamaGuru] = useState(isEdit ? targetGuru?.nama_guru || '' : '');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState(isEdit ? targetGuru?.role || 'WALI_KELAS' : 'WALI_KELAS');
   const [kelasId, setKelasId] = useState(
     isEdit && targetGuru?.kelas_id ? String(targetGuru.kelas_id) : ''
   );
+  const [kelasMapelIds, setKelasMapelIds] = useState(() =>
+    isEdit && Array.isArray(targetGuru?.kelas_mapel_ids) ? targetGuru.kelas_mapel_ids : []
+  );
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  const toggleKelasMapel = (id) => {
+    setKelasMapelIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,12 +48,12 @@ function GuruFormModal({ mode, targetGuru, kelasList, isAdmin, onClose, onSaved 
       setError('Nama lengkap guru wajib diisi.');
       return;
     }
-    if (isAdmin && !nip.trim()) {
-      setError('NIP wajib diisi.');
+    if (isAdmin && !username.trim()) {
+      setError('Username login wajib diisi.');
       return;
     }
     if (!isEdit && !password.trim()) {
-      setError('Kata sandi awal wajib diisi untuk akun guru baru.');
+      setError('Kata sandi awal wajib diisi untuk akun baru.');
       return;
     }
 
@@ -49,14 +61,18 @@ function GuruFormModal({ mode, targetGuru, kelasList, isAdmin, onClose, onSaved 
     try {
       const payload = {
         nama_guru: namaGuru.trim(),
+        nip_nikki: nipNikki.trim() || null,
       };
       if (password.trim()) {
         payload.password = password.trim();
       }
       if (isAdmin) {
-        payload.nip = nip.trim();
+        payload.username = username.trim();
         payload.role = role;
         payload.kelas_id = role === 'WALI_KELAS' && kelasId ? Number(kelasId) : null;
+        if (role === 'GURU_MAPEL') {
+          payload.kelas_mapel_ids = kelasMapelIds;
+        }
       }
 
       const res = isEdit
@@ -96,8 +112,8 @@ function GuruFormModal({ mode, targetGuru, kelasList, isAdmin, onClose, onSaved 
       }
       description={
         isEdit && !isAdmin
-          ? 'Anda dapat memperbarui nama lengkap atau mengganti kata sandi akun Anda.'
-          : 'Lengkapi data NIP, peran, dan kelas perwalian guru.'
+          ? 'Anda dapat memperbarui nama lengkap, NIP/NIKKI, atau mengganti kata sandi akun Anda.'
+          : 'Lengkapi username login, profil NIP/NIKKI (opsional), peran, dan kelas perwalian/mapel.'
       }
       footer={
         <>
@@ -123,16 +139,16 @@ function GuruFormModal({ mode, targetGuru, kelasList, isAdmin, onClose, onSaved 
 
         {isAdmin && (
           <div>
-            <label htmlFor="guru-nip" className="mb-1.5 block text-sm font-semibold text-slate-800">
-              Nomor Induk Pegawai (NIP / Username)
+            <label htmlFor="guru-username" className="mb-1.5 block text-sm font-semibold text-slate-800">
+              Username
             </label>
             <input
               ref={firstRef}
-              id="guru-nip"
+              id="guru-username"
               type="text"
-              value={nip}
-              onChange={(e) => setNip(e.target.value)}
-              placeholder="Contoh: 199203032018011003 atau piket01"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Contoh: siti.aminah atau piket01"
               className={inputBase}
             />
           </div>
@@ -149,6 +165,21 @@ function GuruFormModal({ mode, targetGuru, kelasList, isAdmin, onClose, onSaved 
             value={namaGuru}
             onChange={(e) => setNamaGuru(e.target.value)}
             placeholder="Contoh: Dewi Sartika, S.Pd"
+            className={inputBase}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="guru-nip-nikki" className="mb-1.5 block text-sm font-semibold text-slate-800">
+            NIP / NIKKI{' '}
+            <span className="font-normal text-slate-500">(opsional, boleh kosong)</span>
+          </label>
+          <input
+            id="guru-nip-nikki"
+            type="text"
+            value={nipNikki}
+            onChange={(e) => setNipNikki(e.target.value)}
+            placeholder="Contoh: 199203032018011003"
             className={inputBase}
           />
         </div>
@@ -210,6 +241,61 @@ function GuruFormModal({ mode, targetGuru, kelasList, isAdmin, onClose, onSaved 
                 </select>
               </div>
             )}
+
+            {role === 'GURU_MAPEL' && (
+              <fieldset className="space-y-2.5 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <legend className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Kelas yang Diampu ({kelasMapelIds.length} dipilih)
+                  </legend>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setKelasMapelIds(kelasList.map((k) => k.id))}
+                      className="min-h-8 rounded-md px-2 text-xs font-bold text-[#0a4ea0] hover:bg-blue-100 focus-visible:outline-2 focus-visible:outline-[#098fd1] cursor-pointer"
+                    >
+                      Pilih Semua
+                    </button>
+                    {kelasMapelIds.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setKelasMapelIds([])}
+                        className="min-h-8 rounded-md px-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-[#098fd1] cursor-pointer"
+                      >
+                        Kosongkan
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {kelasList.map((k) => {
+                    const checked = kelasMapelIds.includes(k.id);
+                    return (
+                      <label
+                        key={k.id}
+                        className={`flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-lg border px-2 text-xs font-bold transition-colors ${
+                          checked
+                            ? 'border-[#0a4ea0] bg-blue-50 text-[#0a4ea0] ring-1 ring-[#098fd1]'
+                            : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleKelasMapel(k.id)}
+                          className="h-4 w-4 accent-[#0a4ea0]"
+                        />
+                        <span>{k.nama_kelas}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-slate-600">
+                  1 guru mapel dapat mengisi lebih dari 1 kelas, dan 1 kelas dapat diisi lebih dari 1 guru mapel. Kosongkan semua jika guru dapat mengakses seluruh kelas.
+                </p>
+              </fieldset>
+            )}
           </>
         )}
       </form>
@@ -260,7 +346,7 @@ function DeleteGuruDialog({ targetGuru, onClose, onDeleted }) {
       }
     >
       <p className="text-sm leading-relaxed text-slate-700">
-        Apakah Anda yakin ingin menghapus akun <strong className="font-bold text-slate-900">{targetGuru?.nama_guru}</strong> (NIP: {targetGuru?.nip})?
+        Apakah Anda yakin ingin menghapus akun <strong className="font-bold text-slate-900">{targetGuru?.nama_guru}</strong> (Username: {targetGuru?.username || targetGuru?.nip})?
       </p>
       {error && (
         <p role="alert" className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-sm font-medium text-rose-800">
@@ -537,7 +623,10 @@ export default function GuruKelasTab({ onDataChanged }) {
                   Nama Guru
                 </th>
                 <th scope="col" className="hidden px-4 py-3 font-semibold sm:table-cell">
-                  NIP
+                  Username
+                </th>
+                <th scope="col" className="hidden px-4 py-3 font-semibold md:table-cell">
+                  NIP / NIKKI
                 </th>
                 <th scope="col" className="px-4 py-3 font-semibold">
                   Peran & Kelas
@@ -551,16 +640,26 @@ export default function GuruKelasTab({ onDataChanged }) {
               {guruList.map((g) => {
                 const isMe = g.id === currentUser?.id;
                 const canEditRow = isAdmin || (isMe && g.role !== 'PIKET');
+                const usernameVal = g.username || g.nip;
+                const mapelClasses = g.kelas_mapel || [];
                 return (
                   <tr key={g.id} className="hover:bg-blue-50/40">
                     <td className="px-4 py-3 font-semibold text-slate-900 sm:px-6">
                       <div>{g.nama_guru}</div>
                       <div className="mt-0.5 font-mono text-xs text-slate-500 sm:hidden">
-                        NIP: {g.nip}
+                        Username: {usernameVal}
                       </div>
+                      {g.nip_nikki && (
+                        <div className="mt-0.5 font-mono text-xs text-slate-500 md:hidden">
+                          NIP/NIKKI: {g.nip_nikki}
+                        </div>
+                      )}
                     </td>
-                    <td className="hidden px-4 py-3 font-mono text-xs text-slate-600 sm:table-cell">
-                      {g.nip}
+                    <td className="hidden px-4 py-3 font-mono text-xs text-slate-700 sm:table-cell">
+                      {usernameVal}
+                    </td>
+                    <td className="hidden px-4 py-3 font-mono text-xs text-slate-600 md:table-cell">
+                      {g.nip_nikki || <span className="text-slate-400">-</span>}
                     </td>
                     <td className="px-4 py-3">
                       {g.role === 'WALI_KELAS' ? (
@@ -572,9 +671,23 @@ export default function GuruKelasTab({ onDataChanged }) {
                           Petugas Piket (Lihat Semua Kelas)
                         </span>
                       ) : (
-                        <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-800">
-                          Guru Bidang Studi
-                        </span>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+                            Guru Mapel
+                          </span>
+                          {mapelClasses.length > 0 ? (
+                            mapelClasses.map((km) => (
+                              <span
+                                key={km.id}
+                                className="inline-block rounded-md border border-slate-200 bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700"
+                              >
+                                {km.nama_kelas}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs font-medium text-slate-500">Semua kelas</span>
+                          )}
+                        </div>
                       )}
                     </td>
                     <td className="px-4 py-2 text-right sm:px-6">
@@ -646,6 +759,9 @@ export default function GuruKelasTab({ onDataChanged }) {
                 <th scope="col" className="px-4 py-3 font-semibold">
                   Wali Kelas Bertugas
                 </th>
+                <th scope="col" className="hidden px-4 py-3 font-semibold md:table-cell">
+                  Guru Mapel Pengajar
+                </th>
                 <th scope="col" className="px-4 py-3 font-semibold">
                   Jumlah Siswa
                 </th>
@@ -669,6 +785,34 @@ export default function GuruKelasTab({ onDataChanged }) {
                       <span className="font-semibold text-slate-800">{k.wali_kelas.nama_guru}</span>
                     ) : (
                       <span className="text-slate-500">Belum ditentukan</span>
+                    )}
+                    {k.guru_mapel?.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1 md:hidden">
+                        {k.guru_mapel.map((gm) => (
+                          <span
+                            key={gm.id}
+                            className="inline-block rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-900"
+                          >
+                            {gm.nama_guru}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </td>
+                  <td className="hidden px-4 py-3 md:table-cell">
+                    {k.guru_mapel?.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {k.guru_mapel.map((gm) => (
+                          <span
+                            key={gm.id}
+                            className="inline-block rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900"
+                          >
+                            {gm.nama_guru}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-500">Belum ada</span>
                     )}
                   </td>
                   <td className="px-4 py-3 font-semibold tabular-nums text-slate-700">
@@ -714,10 +858,14 @@ export default function GuruKelasTab({ onDataChanged }) {
             if (updatedGuru && updatedGuru.id === currentUser?.id) {
               updateCurrentGuru({
                 nama_guru: updatedGuru.nama_guru,
-                nip: updatedGuru.nip,
+                username: updatedGuru.username,
+                nip: updatedGuru.username || updatedGuru.nip,
+                nip_nikki: updatedGuru.nip_nikki,
                 role: updatedGuru.role,
                 kelas_id: updatedGuru.kelas_id,
                 nama_kelas: updatedGuru.nama_kelas,
+                kelas_mapel_ids: updatedGuru.kelas_mapel_ids,
+                kelas_mapel: updatedGuru.kelas_mapel,
               });
             }
             setGuruDialog(null);

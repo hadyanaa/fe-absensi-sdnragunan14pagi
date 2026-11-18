@@ -22,10 +22,10 @@ export const AuthProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState(false);
 
-  const login = async (nip, password) => {
+  const login = async (username, password) => {
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { nip, password });
+      const res = await api.post('/auth/login', { username, nip: username, password });
       if (res.data?.success) {
         const { token: jwtToken, guru: guruData } = res.data;
         setToken(jwtToken);
@@ -41,16 +41,20 @@ export const AuthProvider = ({ children }) => {
           const rootAuthUrl = import.meta.env.DEV
             ? '/auth-proxy/login'
             : `${(import.meta.env.VITE_API_BASE_URL || 'https://api.sdnragunan14pagi.sch.id/api').replace(/\/api\/?$/, '')}/auth/login`;
-          const adminRes = await axios.post(rootAuthUrl, { username: nip, nip, password });
+          const adminRes = await axios.post(rootAuthUrl, { username, nip: username, password });
           if (adminRes.data?.token) {
             const jwtToken = adminRes.data.token;
             const guruData = adminRes.data.guru || {
               id: 0,
-              nip,
+              username,
+              nip: username,
+              nip_nikki: null,
               nama_guru: 'Administrator Sekolah',
               role: 'ADMIN',
               kelas_id: null,
               nama_kelas: null,
+              kelas_mapel_ids: [],
+              kelas_mapel: [],
             };
             setToken(jwtToken);
             setGuru(guruData);

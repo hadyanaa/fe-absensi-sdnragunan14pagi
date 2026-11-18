@@ -5,6 +5,8 @@ export default function Topbar() {
   const { guru, logout } = useAuth();
   const isAdmin = guru?.role === 'ADMIN' || guru?.role === 'admin';
   const isPiket = guru?.role === 'PIKET';
+  const loginIdentifier = guru?.username || guru?.nip;
+  const mapelLabels = (guru?.kelas_mapel || []).map((k) => k.nama_kelas).join(', ');
 
   return (
     <header className="sticky top-0 z-40 border-b border-blue-900/10 bg-white px-4 py-3 sm:px-8">
@@ -27,8 +29,13 @@ export default function Topbar() {
               {guru?.nama_guru || 'Bapak/Ibu Guru'}
             </p>
             <div className="mt-0.5 flex items-center justify-end gap-2">
-              {guru?.nip && (
-                <span className="font-mono text-xs text-slate-600">NIP: {guru.nip}</span>
+              {loginIdentifier && (
+                <span className="font-mono text-xs text-slate-600">@{loginIdentifier}</span>
+              )}
+              {guru?.nip_nikki && (
+                <span className="font-mono text-xs text-slate-500">
+                  | NIP/NIKKI: {guru.nip_nikki}
+                </span>
               )}
               <span
                 className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${
@@ -47,7 +54,9 @@ export default function Topbar() {
                     ? 'Petugas Piket (Lihat Saja)'
                     : guru?.role === 'WALI_KELAS'
                       ? `Wali Kelas ${guru?.nama_kelas || ''}`
-                      : 'Guru Bidang Studi'}
+                      : mapelLabels
+                        ? `Guru Mapel (${mapelLabels})`
+                        : 'Guru Bidang Studi'}
               </span>
             </div>
           </div>

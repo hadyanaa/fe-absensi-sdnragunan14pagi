@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getKelas } from '../services/api';
 import Topbar from '../components/Topbar';
@@ -44,8 +44,14 @@ export default function DashboardPage() {
   const { guru } = useAuth();
   const isWali = guru?.role === 'WALI_KELAS';
   const isPiket = guru?.role === 'PIKET';
+  const isMapel = guru?.role === 'GURU_MAPEL';
   const isAdmin = guru?.role === 'ADMIN' || guru?.role === 'admin';
   const guruKelasId = guru?.kelas_id || null;
+  const rawMapelIds = guru?.kelas_mapel_ids;
+  const assignedMapelIds = useMemo(
+    () => (Array.isArray(rawMapelIds) ? rawMapelIds : []),
+    [rawMapelIds]
+  );
 
   const [activeTab, setActiveTab] = useState('presensi');
   const [kelasList, setKelasList] = useState([]);
@@ -55,6 +61,11 @@ export default function DashboardPage() {
   const [unsavedPresensi, setUnsavedPresensi] = useState(0);
 
   const currentTab = isPiket ? 'presensi' : activeTab;
+
+  const visibleKelasList =
+    isMapel && assignedMapelIds.length > 0
+      ? kelasList.filter((k) => assignedMapelIds.includes(k.id))
+      : kelasList;
 
   useEffect(() => {
     let active = true;
@@ -67,6 +78,11 @@ export default function DashboardPage() {
           setKelasList(list);
           if (isWali && guruKelasId) {
             setSelectedKelasId(guruKelasId);
+          } else if (isMapel && assignedMapelIds.length > 0) {
+            const scoped = list.filter((k) => assignedMapelIds.includes(k.id));
+            setSelectedKelasId((curr) =>
+              curr && scoped.some((k) => k.id === curr) ? curr : scoped[0]?.id || null
+            );
           } else {
             setSelectedKelasId((curr) => curr || list[0]?.id || null);
           }
@@ -79,7 +95,7 @@ export default function DashboardPage() {
     return () => {
       active = false;
     };
-  }, [isWali, guruKelasId, kelasTick]);
+  }, [isWali, isMapel, guruKelasId, assignedMapelIds, kelasTick]);
 
   const handleRosterChange = useCallback(() => {
     setRosterVersion((v) => v + 1);
@@ -131,7 +147,7 @@ export default function DashboardPage() {
         >
           <PresensiTab
             guru={guru}
-            kelasList={kelasList}
+            kelasList={visibleKelasList}
             selectedKelasId={selectedKelasId}
             onSelectKelas={setSelectedKelasId}
             rosterVersion={rosterVersion}
@@ -149,7 +165,7 @@ export default function DashboardPage() {
           >
             <SiswaTab
               guru={guru}
-              kelasList={kelasList}
+              kelasList={visibleKelasList}
               selectedKelasId={selectedKelasId}
               onSelectKelas={(id) => {
                 if (

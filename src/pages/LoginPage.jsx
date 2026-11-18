@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
   const { login, loading } = useAuth();
-  const [nip, setNip] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -11,12 +11,12 @@ export default function LoginPage() {
     e.preventDefault();
     setErrorMsg('');
 
-    if (!nip.trim() || !password.trim()) {
-      setErrorMsg('Harap isi NIP dan kata sandi dengan lengkap.');
+    if (!username.trim() || !password.trim()) {
+      setErrorMsg('Harap isi username dan kata sandi dengan lengkap.');
       return;
     }
 
-    const res = await login(nip.trim(), password);
+    const res = await login(username.trim(), password);
     if (!res.success) {
       setErrorMsg(res.message);
     }
@@ -64,17 +64,18 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label
-              htmlFor="input-nip"
+              htmlFor="input-username"
               className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700"
             >
-              NIP / Username
+              Username
             </label>
             <input
-              id="input-nip"
+              id="input-username"
               type="text"
-              value={nip}
-              onChange={(e) => setNip(e.target.value)}
-              placeholder="Masukkan NIP atau username akun"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Masukkan username akun"
+              autoComplete="username"
               className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-3 text-base font-medium text-slate-900 placeholder-slate-400 transition-colors focus:border-[#098fd1] focus:outline-none focus:ring-4 focus:ring-[#098fd1]/15 sm:text-sm"
               required
               autoFocus
