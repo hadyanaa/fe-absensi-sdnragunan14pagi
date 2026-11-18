@@ -22,6 +22,7 @@ export default function AbsensiGrid({
   onSetAllPresentForDay,
   onOpenSiswaTab,
   onSelectStudent,
+  readOnly = false,
 }) {
   const daysArray = Array.from({ length: totalHari || 31 }, (_, i) => i + 1);
 
@@ -131,7 +132,9 @@ export default function AbsensiGrid({
         </div>
 
         <p className="text-xs text-slate-600">
-          Klik sel tanggal untuk mengubah status, atau klik nama murid untuk melihat riwayat per tahun ajaran.
+          {readOnly
+            ? 'Mode lihat saja (Petugas Piket). Klik nama murid untuk melihat riwayat kehadiran per tahun ajaran.'
+            : 'Klik sel tanggal untuk mengubah status, atau klik nama murid untuk melihat riwayat per tahun ajaran.'}
         </p>
       </div>
 
@@ -162,7 +165,7 @@ export default function AbsensiGrid({
                   >
                     <div className="font-mono text-xs font-bold leading-none">{day}</div>
                     <div className="mt-0.5 text-[10px] font-medium text-slate-600">{name}</div>
-                    {!isWeekend && (
+                    {!isWeekend && !readOnly && (
                       <button
                         type="button"
                         onClick={() => onSetAllPresentForDay(day)}
@@ -259,16 +262,25 @@ export default function AbsensiGrid({
                             isWeekend ? 'bg-slate-50/80' : ''
                           }`}
                         >
-                          <button
-                            type="button"
-                            onClick={() => handleCellClick(murid.murid_id, day, currentStatus)}
-                            onContextMenu={(e) => handleContextMenu(e, murid.murid_id, day)}
-                            title={`Tgl ${day}: ${murid.nama_murid} (${currentStatus || 'Belum diisi'})`}
-                            aria-label={`Tanggal ${day}, ${murid.nama_murid}, status ${currentStatus || 'belum diisi'}`}
-                            className="flex h-9 w-full items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:outline-[#098fd1] cursor-pointer"
-                          >
-                            {renderBadge(currentStatus)}
-                          </button>
+                          {readOnly ? (
+                            <span
+                              title={`Tgl ${day}: ${murid.nama_murid} (${currentStatus || 'Belum diisi'})`}
+                              className="flex h-9 w-full items-center justify-center rounded-lg"
+                            >
+                              {renderBadge(currentStatus)}
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleCellClick(murid.murid_id, day, currentStatus)}
+                              onContextMenu={(e) => handleContextMenu(e, murid.murid_id, day)}
+                              title={`Tgl ${day}: ${murid.nama_murid} (${currentStatus || 'Belum diisi'})`}
+                              aria-label={`Tanggal ${day}, ${murid.nama_murid}, status ${currentStatus || 'belum diisi'}`}
+                              className="flex h-9 w-full items-center justify-center rounded-lg focus-visible:outline-2 focus-visible:outline-[#098fd1] cursor-pointer"
+                            >
+                              {renderBadge(currentStatus)}
+                            </button>
+                          )}
                         </td>
                       );
                     })}

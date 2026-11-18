@@ -18,6 +18,7 @@ export default function ControlBar({
   saving,
   onExportExcel,
   canExport,
+  readOnly = false,
 }) {
   const handlePrevMonth = () => {
     if (bulan === 1) {
@@ -117,7 +118,25 @@ export default function ControlBar({
 
       {/* Unsaved Changes, Ekspor Excel & Tombol Simpan */}
       <div className="flex flex-wrap items-center gap-2.5">
-        {unsavedCount > 0 ? (
+        {readOnly ? (
+          <div className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-teal-200 bg-teal-50 px-3.5 py-2 text-xs font-bold text-teal-900">
+            <svg className="h-4 w-4 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+            <span>Mode Lihat Saja (Piket)</span>
+          </div>
+        ) : unsavedCount > 0 ? (
           <div className="flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900">
             <span className="h-2 w-2 rounded-full bg-amber-500" aria-hidden="true" />
             <span>{unsavedCount} perubahan belum disimpan</span>
@@ -146,29 +165,31 @@ export default function ControlBar({
           <span>Ekspor Excel (.xlsx)</span>
         </button>
 
-        <button
-          type="button"
-          onClick={onSave}
-          disabled={unsavedCount === 0 || saving}
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#0a4ea0] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-sm transition-colors hover:bg-[#098fd1] disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#098fd1] cursor-pointer"
-        >
-          {saving ? (
-            <>
-              <svg className="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-              </svg>
-              <span>Menyimpan...</span>
-            </>
-          ) : (
-            <>
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Simpan Perubahan</span>
-            </>
-          )}
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={unsavedCount === 0 || saving}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#0a4ea0] px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-white shadow-sm transition-colors hover:bg-[#098fd1] disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#098fd1] cursor-pointer"
+          >
+            {saving ? (
+              <>
+                <svg className="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                <span>Menyimpan...</span>
+              </>
+            ) : (
+              <>
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Simpan Perubahan</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

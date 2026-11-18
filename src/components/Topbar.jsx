@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 export default function Topbar() {
   const { guru, logout } = useAuth();
   const isAdmin = guru?.role === 'ADMIN' || guru?.role === 'admin';
+  const isPiket = guru?.role === 'PIKET';
 
   return (
     <header className="sticky top-0 z-40 border-b border-blue-900/10 bg-white px-4 py-3 sm:px-8">
@@ -33,16 +34,20 @@ export default function Topbar() {
                 className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${
                   isAdmin
                     ? 'border-purple-200 bg-purple-50 text-purple-900'
-                    : guru?.role === 'WALI_KELAS'
-                      ? 'border-blue-200 bg-blue-50 text-[#0a4ea0]'
-                      : 'border-amber-200 bg-amber-50 text-amber-800'
+                    : isPiket
+                      ? 'border-teal-200 bg-teal-50 text-teal-900'
+                      : guru?.role === 'WALI_KELAS'
+                        ? 'border-blue-200 bg-blue-50 text-[#0a4ea0]'
+                        : 'border-amber-200 bg-amber-50 text-amber-800'
                 }`}
               >
                 {isAdmin
                   ? 'Administrator'
-                  : guru?.role === 'WALI_KELAS'
-                    ? `Wali Kelas ${guru?.nama_kelas || ''}`
-                    : 'Guru Bidang Studi'}
+                  : isPiket
+                    ? 'Petugas Piket (Lihat Saja)'
+                    : guru?.role === 'WALI_KELAS'
+                      ? `Wali Kelas ${guru?.nama_kelas || ''}`
+                      : 'Guru Bidang Studi'}
               </span>
             </div>
           </div>

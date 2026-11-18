@@ -67,14 +67,14 @@ export default function LoginPage() {
               htmlFor="input-nip"
               className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700"
             >
-              Nomor Induk Pegawai (NIP)
+              NIP / Username
             </label>
             <input
               id="input-nip"
               type="text"
               value={nip}
               onChange={(e) => setNip(e.target.value)}
-              placeholder="Contoh: 198501012010011001"
+              placeholder="Masukkan NIP atau username akun"
               className="min-h-11 w-full rounded-xl border border-slate-300 px-4 py-3 text-base font-medium text-slate-900 placeholder-slate-400 transition-colors focus:border-[#098fd1] focus:outline-none focus:ring-4 focus:ring-[#098fd1]/15 sm:text-sm"
               required
               autoFocus

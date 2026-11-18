@@ -43,6 +43,7 @@ const IconSekolah = (
 export default function DashboardPage() {
   const { guru } = useAuth();
   const isWali = guru?.role === 'WALI_KELAS';
+  const isPiket = guru?.role === 'PIKET';
   const isAdmin = guru?.role === 'ADMIN' || guru?.role === 'admin';
   const guruKelasId = guru?.kelas_id || null;
 
@@ -52,6 +53,8 @@ export default function DashboardPage() {
   const [rosterVersion, setRosterVersion] = useState(0);
   const [kelasTick, setKelasTick] = useState(0);
   const [unsavedPresensi, setUnsavedPresensi] = useState(0);
+
+  const currentTab = isPiket ? 'presensi' : activeTab;
 
   useEffect(() => {
     let active = true;
@@ -83,39 +86,48 @@ export default function DashboardPage() {
     setKelasTick((t) => t + 1);
   }, []);
 
-  const tabs = [
-    {
-      id: 'presensi',
-      label: 'Presensi Harian',
-      shortLabel: 'Presensi',
-      icon: IconPresensi,
-      badge: activeTab !== 'presensi' && unsavedPresensi > 0 ? unsavedPresensi : null,
-    },
-    {
-      id: 'siswa',
-      label: 'Kelola Data Siswa',
-      shortLabel: 'Data Siswa',
-      icon: IconSiswa,
-    },
-    {
-      id: 'guru-kelas',
-      label: isAdmin ? 'Kelola Guru & Kelas' : 'Data Guru & Kelas',
-      shortLabel: 'Guru & Kelas',
-      icon: IconSekolah,
-    },
-  ];
+  const tabs = isPiket
+    ? [
+        {
+          id: 'presensi',
+          label: 'Presensi Harian',
+          shortLabel: 'Presensi',
+          icon: IconPresensi,
+        },
+      ]
+    : [
+        {
+          id: 'presensi',
+          label: 'Presensi Harian',
+          shortLabel: 'Presensi',
+          icon: IconPresensi,
+          badge: currentTab !== 'presensi' && unsavedPresensi > 0 ? unsavedPresensi : null,
+        },
+        {
+          id: 'siswa',
+          label: 'Kelola Data Siswa',
+          shortLabel: 'Data Siswa',
+          icon: IconSiswa,
+        },
+        {
+          id: 'guru-kelas',
+          label: isAdmin ? 'Kelola Guru & Kelas' : 'Data Guru & Kelas',
+          shortLabel: 'Guru & Kelas',
+          icon: IconSekolah,
+        },
+      ];
 
   return (
     <div className="min-h-screen bg-[#f9fafa] pb-16 font-['Plus_Jakarta_Sans',sans-serif] text-slate-800">
       <Topbar />
-      <TabNav tabs={tabs} activeId={activeTab} onChange={setActiveTab} />
+      <TabNav tabs={tabs} activeId={currentTab} onChange={setActiveTab} />
 
       <main className="mx-auto max-w-[1540px] px-3 pt-5 sm:px-8 sm:pt-6">
         <div
           id="panel-presensi"
           role="tabpanel"
           aria-labelledby="tab-presensi"
-          hidden={activeTab !== 'presensi'}
+          hidden={currentTab !== 'presensi'}
         >
           <PresensiTab
             guru={guru}
@@ -124,36 +136,38 @@ export default function DashboardPage() {
             onSelectKelas={setSelectedKelasId}
             rosterVersion={rosterVersion}
             onUnsavedChange={setUnsavedPresensi}
-            onOpenSiswaTab={() => setActiveTab('siswa')}
+            onOpenSiswaTab={!isPiket ? () => setActiveTab('siswa') : undefined}
           />
         </div>
 
-        <div
-          id="panel-siswa"
-          role="tabpanel"
-          aria-labelledby="tab-siswa"
-          hidden={activeTab !== 'siswa'}
-        >
-          <SiswaTab
-            guru={guru}
-            kelasList={kelasList}
-            selectedKelasId={selectedKelasId}
-            onSelectKelas={(id) => {
-              if (
-                unsavedPresensi > 0 &&
-                !window.confirm(
-                  'Ada perubahan presensi yang belum disimpan untuk kelas ini. Ganti kelas dan buang perubahan tersebut?'
-                )
-              ) {
-                return;
-              }
-              setSelectedKelasId(id);
-            }}
-            onRosterChange={handleRosterChange}
-          />
-        </div>
+        {!isPiket && (
+          <div
+            id="panel-siswa"
+            role="tabpanel"
+            aria-labelledby="tab-siswa"
+            hidden={currentTab !== 'siswa'}
+          >
+            <SiswaTab
+              guru={guru}
+              kelasList={kelasList}
+              selectedKelasId={selectedKelasId}
+              onSelectKelas={(id) => {
+                if (
+                  unsavedPresensi > 0 &&
+                  !window.confirm(
+                    'Ada perubahan presensi yang belum disimpan untuk kelas ini. Ganti kelas dan buang perubahan tersebut?'
+                  )
+                ) {
+                  return;
+                }
+                setSelectedKelasId(id);
+              }}
+              onRosterChange={handleRosterChange}
+            />
+          </div>
+        )}
 
-        {activeTab === 'guru-kelas' && (
+        {!isPiket && currentTab === 'guru-kelas' && (
           <div id="panel-guru-kelas" role="tabpanel" aria-labelledby="tab-guru-kelas">
             <GuruKelasTab onDataChanged={handleRosterChange} />
           </div>

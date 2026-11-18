@@ -20,6 +20,7 @@ export default function PresensiTab({
   onOpenSiswaTab,
 }) {
   const notify = useToast();
+  const isPiket = guru?.role === 'PIKET';
 
   const [bulan, setBulan] = useState(() => new Date().getMonth() + 1);
   const [tahun, setTahun] = useState(() => new Date().getFullYear());
@@ -104,10 +105,12 @@ export default function PresensiTab({
   };
 
   const handleCellChange = (muridId, day, newStatus) => {
+    if (isPiket) return;
     setStagedChanges((prev) => ({ ...prev, [`${muridId}_${day}`]: newStatus }));
   };
 
   const handleSetAllPresent = (day) => {
+    if (isPiket) return;
     const updates = {};
     (dataAbsensi.data || []).forEach((m) => {
       updates[`${m.murid_id}_${day}`] = 'H';
@@ -218,6 +221,7 @@ export default function PresensiTab({
         saving={saving}
         onExportExcel={handleExportExcel}
         canExport={!loading && (dataAbsensi.data || []).length > 0}
+        readOnly={isPiket}
       />
 
       <KpiCards
@@ -263,6 +267,7 @@ export default function PresensiTab({
           onCellChange={handleCellChange}
           onSetAllPresentForDay={handleSetAllPresent}
           onOpenSiswaTab={onOpenSiswaTab}
+          readOnly={isPiket}
           onSelectStudent={(murid) => {
             const activeKelas = kelasList.find((k) => k.id === selectedKelasId);
             setHistorySiswa({

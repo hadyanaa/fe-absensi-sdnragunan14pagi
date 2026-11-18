@@ -124,7 +124,7 @@ function GuruFormModal({ mode, targetGuru, kelasList, isAdmin, onClose, onSaved 
         {isAdmin && (
           <div>
             <label htmlFor="guru-nip" className="mb-1.5 block text-sm font-semibold text-slate-800">
-              Nomor Induk Pegawai (NIP)
+              Nomor Induk Pegawai (NIP / Username)
             </label>
             <input
               ref={firstRef}
@@ -132,7 +132,7 @@ function GuruFormModal({ mode, targetGuru, kelasList, isAdmin, onClose, onSaved 
               type="text"
               value={nip}
               onChange={(e) => setNip(e.target.value)}
-              placeholder="Contoh: 199203032018011003"
+              placeholder="Contoh: 199203032018011003 atau piket01"
               className={inputBase}
             />
           </div>
@@ -181,7 +181,13 @@ function GuruFormModal({ mode, targetGuru, kelasList, isAdmin, onClose, onSaved 
               >
                 <option value="WALI_KELAS">Wali Kelas</option>
                 <option value="GURU_MAPEL">Guru Bidang Studi (Mapel)</option>
+                <option value="PIKET">Petugas Piket (Lihat Semua Kelas)</option>
               </select>
+              {role === 'PIKET' && (
+                <p className="mt-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-xs text-teal-900">
+                  Akun Piket hanya dapat melihat tab Presensi Harian untuk seluruh kelas tanpa hak ubah/hapus. Pengelolaan akun ini hanya dapat dilakukan oleh Admin.
+                </p>
+              )}
             </div>
 
             {role === 'WALI_KELAS' && (
@@ -493,10 +499,10 @@ export default function GuruKelasTab({ onDataChanged }) {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-4 sm:p-6">
           <div className="flex flex-wrap items-baseline gap-2.5">
             <h2 id="judul-guru" className="text-lg font-bold text-slate-900 sm:text-xl">
-              Data Guru Pengajar
+              Data Guru & Petugas Piket
             </h2>
             <span className="rounded-md bg-blue-50 px-2 py-0.5 text-sm font-semibold text-[#0a4ea0]">
-              {guruList.length} guru terdaftar
+              {guruList.length} akun terdaftar
             </span>
           </div>
 
@@ -544,7 +550,7 @@ export default function GuruKelasTab({ onDataChanged }) {
             <tbody className="divide-y divide-slate-100">
               {guruList.map((g) => {
                 const isMe = g.id === currentUser?.id;
-                const canEditRow = isAdmin || isMe;
+                const canEditRow = isAdmin || (isMe && g.role !== 'PIKET');
                 return (
                   <tr key={g.id} className="hover:bg-blue-50/40">
                     <td className="px-4 py-3 font-semibold text-slate-900 sm:px-6">
@@ -560,6 +566,10 @@ export default function GuruKelasTab({ onDataChanged }) {
                       {g.role === 'WALI_KELAS' ? (
                         <span className="inline-block rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-[#0a4ea0]">
                           Wali Kelas {g.nama_kelas || '-'}
+                        </span>
+                      ) : g.role === 'PIKET' ? (
+                        <span className="inline-block rounded-full border border-teal-200 bg-teal-50 px-2.5 py-0.5 text-xs font-bold text-teal-900">
+                          Petugas Piket (Lihat Semua Kelas)
                         </span>
                       ) : (
                         <span className="inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-800">
