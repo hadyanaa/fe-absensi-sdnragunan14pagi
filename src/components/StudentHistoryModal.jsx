@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getMuridHistory, getErrorMessage } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { hitungUsia } from '../utils/usia';
 import Modal, { btnPrimary, btnSecondary, Spinner } from './Modal';
+import TindakLanjutPanel from './TindakLanjutPanel';
 
 const NAMA_BULAN_SINGKAT = [
   'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
@@ -119,6 +121,8 @@ const formatTglIndo = (isoDate) => {
  * Dapat dibuka dari halaman Presensi Harian maupun Kelola Data Siswa.
  */
 export default function StudentHistoryModal({ open, siswa, onClose }) {
+  const { guru } = useAuth();
+  const isPiket = guru?.role === 'PIKET';
   const muridId = siswa?.id || siswa?.murid_id;
   const [activeTab, setActiveTab] = useState('kehadiran');
   const [selectedTA, setSelectedTA] = useState('');
@@ -246,15 +250,16 @@ export default function StudentHistoryModal({ open, siswa, onClose }) {
 
       {!loading && !error && historyData && (
         <div className="space-y-5">
-          {/* Sub-tab Popup: Riwayat Kehadiran vs Biodata & Jejak Kelas */}
+          {/* Sub-tab Popup: Riwayat Kehadiran vs Biodata & Jejak Kelas vs Tindak Lanjut */}
           <div
             role="tablist"
             aria-label="Bagian profil siswa"
-            className="inline-flex w-full rounded-xl border border-slate-200 bg-slate-100 p-1 sm:w-auto"
+            className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-slate-100 p-1 sm:inline-flex"
           >
             {[
               { id: 'kehadiran', label: 'Riwayat Kehadiran' },
               { id: 'biodata', label: 'Biodata & Jejak Kelas' },
+              ...(!isPiket ? [{ id: 'tindak-lanjut', label: 'Tindak Lanjut' }] : []),
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -273,7 +278,9 @@ export default function StudentHistoryModal({ open, siswa, onClose }) {
             ))}
           </div>
 
-          {activeTab === 'biodata' ? (
+          {activeTab === 'tindak-lanjut' && !isPiket ? (
+            <TindakLanjutPanel muridId={muridId} muridKelasId={muridInfo?.kelas_id} />
+          ) : activeTab === 'biodata' ? (
             <div className="space-y-5">
               {/* Kartu Biodata Siswa */}
               <div className="rounded-xl border border-slate-200 bg-white p-4">

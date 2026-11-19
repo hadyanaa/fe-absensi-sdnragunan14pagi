@@ -74,6 +74,19 @@ export const getMuridHistory = (id, tahunAjaran) =>
   api.get(`/murid/${id}/history`, {
     params: tahunAjaran ? { tahun_ajaran: tahunAjaran } : undefined,
   });
+export const getTindakLanjut = (muridId) => api.get(`/murid/${muridId}/tindak-lanjut`);
+export const createTindakLanjut = (muridId, formData) =>
+  api.post(`/murid/${muridId}/tindak-lanjut`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+export const uploadTindakLanjutLampiran = (recordId, formData) =>
+  api.post(`/murid/tindak-lanjut/${recordId}/lampiran`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+export const fetchTindakLanjutFileBlob = (recordId) =>
+  api.get(`/murid/tindak-lanjut/${recordId}/file`, { responseType: 'blob' });
+export const deleteTindakLanjut = (recordId) =>
+  api.delete(`/murid/tindak-lanjut/${recordId}`);
 export const createMurid = (data) => api.post('/murid', data);
 export const createMuridBulk = (data) => api.post('/murid/bulk', data);
 export const promoteMurid = (data) => api.post('/murid/promote', data);
